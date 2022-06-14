@@ -25,7 +25,7 @@ export type Course = {
 }
 
 
-type CourseRun = {
+export type CourseRun = {
   'end_date': Date,
   'short_description': string,
   'run_id': string,

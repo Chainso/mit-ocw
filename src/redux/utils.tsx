@@ -1,6 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
-export const makeAsyncCallThunk = (typePrefix: string, options?: any) => {
+export function makeAsyncCallThunk(typePrefix: string, options?: any) {
   return createAsyncThunk(
     typePrefix,
     async (func: Function, ...args: any) => {
@@ -8,4 +8,4 @@ export const makeAsyncCallThunk = (typePrefix: string, options?: any) => {
     },
     options
   );
-};
+}

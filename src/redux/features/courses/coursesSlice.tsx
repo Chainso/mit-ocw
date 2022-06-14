@@ -22,9 +22,12 @@ const initialCoursesState: CourseState = {
 
 export const makeAsyncCall = makeAsyncCallThunk('courses/makeAsyncCall');
 export const getCourses = createAsyncThunk('courses/getCourses', async () => {
-  return await axios.post(OCWApi.SEARCH.URL, OCWApi.SEARCH.BODY)
+  return await axios.post(OCWApi.API_URL + OCWApi.SEARCH.URL, OCWApi.SEARCH.BODY)
     .then((courses) => {
-      return courses.data.hits.hits;
+      return courses.data.hits.hits.map((course): Course => course._source)
+        .filter((course: Course) => {
+          return course.runs.length > 0;
+        });
     });
 });
 

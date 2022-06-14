@@ -2,13 +2,14 @@ import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import {
   StyleSheet,
-  Text,
-  SafeAreaView
+  SafeAreaView,
+  FlatList
 } from 'react-native';
 
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { getCourses } from '../../redux/features/courses/coursesSlice';
 import { selectCourses } from '../../redux/features/courses/coursesSlice';
+import CourseTile from '../../components/CourseTile';
 
 export default function Home() {
   const dispatch = useAppDispatch();
@@ -19,10 +20,15 @@ export default function Home() {
       dispatch(getCourses());
     }
   }, []);
-  console.log(courses)
+
+  const ucor = courses.length > 0 ? [courses[0], courses[1]] : [];
   return (
     <SafeAreaView style={styles.container}>
-      <Text>Open up App.tsx to ssstartss working on your app!</Text>
+      <FlatList
+        data={ucor}
+        renderItem={({ item }) => <CourseTile course={item} />}
+        showsVerticalScrollIndicator={false}
+      />
       <StatusBar style="auto" />
     </SafeAreaView>
   );
@@ -31,8 +37,8 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 20,
     backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: '100%'
   },
 });
