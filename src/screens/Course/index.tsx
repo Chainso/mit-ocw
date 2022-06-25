@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -8,17 +8,28 @@ import {
 } from 'react-native';
 import { useDeviceOrientation } from '@react-native-community/hooks';
 import { FlatGrid } from 'react-native-super-grid';
+import axios from 'axios';
+import * as cheerio from 'cheerio';
 
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
+import { selectCourse, setCourse } from '../../redux/features/courses/coursesSlice';
 import OCWApi from '../../constants/ocw-api';
 import { backgroundGray, textGray } from '../../utils/colours';
 import { Entypo } from '@expo/vector-icons';
+import {
+  CourseFeatureTags,
+  LectureVideo
+} from '../../redux/features/courses/types';
 
 
 export default function CourseScreen({ navigation, route }) {
-  const { course } = route.params;
+  const { courseId } = route.params;
   const { landscape } = useDeviceOrientation();
 
-  const courseRun = course.runs[0];
+  const dispatch = useAppDispatch();
+  const course = useAppSelector(selectCourse(courseId));
+
+  const courseRun = course.course.runs[0];
   const courseLevel = courseRun?.level?.[0]?.charAt(0);
 
   type ArrayInfoPiece = {
@@ -30,6 +41,52 @@ export default function CourseScreen({ navigation, route }) {
   interface ArrayInfoPieceContainer {
     item: ArrayInfoPiece
   };
+
+  const onInit = () => {
+    const featureTagSet = new Set(course.course.course_feature_tags);
+    console.log(featureTagSet);
+    console.log(CourseFeatureTags.LECTURE_VIDEOS);
+    if (featureTagSet.has(CourseFeatureTags.LECTURE_VIDEOS) && !course.features?.lectureVideos) {
+      parseVideos();
+    }
+  };
+
+  const parseVideos = () => {
+    console.log('Got lec');
+    const doc = cheerio.load(course.page || '');
+    const videoSelector = doc('.video-link', '#course-content-section');
+    const videos = videoSelector.toArray();
+
+    course.features.lectureVideos = videos.map((videoTag): LectureVideo => {
+      const video = doc(videoTag);
+
+      const videoPage = video.attr('href');
+      const thumbnail = doc('img', video).attr('src');
+      const videoTitle = doc('.video-title', video).text();
+
+      return {
+        title: videoTitle,
+        thumbnail: thumbnail,
+        pageUrl: videoPage
+      };
+    });
+
+    console.log(course.features.lectureVideos);
+  };
+
+  useEffect(() => {
+    if (course.page) {
+      onInit();
+    } else {
+      axios.get('https://ocw.mit.edu/courses/15-s12-blockchain-and-money-fall-2018/video_galleries/video-lectures/')
+        .then((page) => {
+          console.log('Got page');
+          course.page = page.data;
+          dispatch(setCourse(course));
+          onInit();
+        });
+    }
+  }, []);
 
   const createArrayInfoPiece = (data: string[], style: any): ArrayInfoPiece => {
     return {
@@ -63,10 +120,10 @@ export default function CourseScreen({ navigation, route }) {
     courseRun.instructors, styles.instructor
   );
   const departmentPiece = createArrayInfoPiece(
-    course.department_name, styles.department
+    course.course.department_name, styles.department
   );
   const topicPiece = createArrayInfoPiece(
-    course.topics, styles.department
+    course.course.topics, styles.department
   );
   const arrayInfo = [instructorPiece, departmentPiece, topicPiece];
 
@@ -74,13 +131,13 @@ export default function CourseScreen({ navigation, route }) {
     <View style={[styles.container, landscape ? styles.landscape : styles.portrait]}>
       <Image
         style={styles.image}
-        source={{ uri: OCWApi.URL + course.image_src }}
+        source={{ uri: OCWApi.URL + course.course.image_src }}
       />
       <SafeAreaView style={styles.information}>
         <View style={styles.titleBar}>
-          <Text style={styles.titleBarText}>{course.title}</Text>
+          <Text style={styles.titleBarText}>{course.course.title}</Text>
           <View style={styles.courseInfo}>
-            <Text style={[styles.titleBarText, styles.courseInfoText]}>{course.coursenum}</Text>
+            <Text style={[styles.titleBarText, styles.courseInfoText]}>{course.course.coursenum}</Text>
             <Text style={[styles.titleBarText, styles.courseInfoText, styles.levelDelimiter]}>|</Text>
             <Text style={[styles.titleBarText, styles.courseInfoText]}>{courseLevel}</Text>
           </View>

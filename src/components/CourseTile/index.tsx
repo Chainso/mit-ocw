@@ -38,7 +38,7 @@ export default function CourseTile({ course }: CourseTileProps) {
 
   const onTilePress = () => {
     navigation.navigate('Course', {
-      course: course
+      courseId: course.id
     });
   };
 

@@ -1,3 +1,9 @@
+export type CourseInfo = {
+  course: Course,
+  features: CourseFeatures
+  page?: string,
+};
+
 export type Course = {
   'id': number,
   'course_id': string,
@@ -18,11 +24,11 @@ export type Course = {
   'certification': Array<string>,
   'department_name': Array<string>
   'department_slug': Array<string>,
-  'course_feature_tags': Array<CourseFeatures>
+  'course_feature_tags': Array<CourseFeatureTags>
   'department_course_numbers': Array<CourseDepartmentCourseNumber>
   'object_type': string,
   'resource_relations': CourseResourceRelation
-}
+};
 
 
 export type CourseRun = {
@@ -48,29 +54,40 @@ export type CourseRun = {
   'prices': Array<CoursePrice>
   'slug': string,
   'start_date': Date
-}
+};
 
 export type CoursePrice = {
   mode: string,
   price: string
-}
+};
 
 export type CourseDepartmentCourseNumber = {
   'coursenum': string,
   'sort_coursenum': string,
   'department': string,
   'primary': boolean
-}
+};
 
 export type CourseResourceRelation = {
   name: string
-}
+};
 
 export enum CourseLevels {
   UNDERGRADUATE = 'Undergraduate',
   GRADUATE = 'Graduate'
 }
-export enum CourseFeatures {
+
+export enum CourseFeatureTags {
   LECTURE_NOTES = 'Lecture Notes',
   LECTURE_VIDEOS = 'Lecture Videos'
 }
+
+export type CourseFeatures = {
+  lectureVideos?: LectureVideo[]
+};
+
+export type LectureVideo = {
+  title?: string,
+  thumbnail?: string,
+  pageUrl?: string
+};
