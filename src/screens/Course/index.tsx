@@ -2,25 +2,20 @@ import React from 'react';
 import {
   StyleSheet,
   Text,
+  SafeAreaView,
   View,
-  Image,
-  Pressable
+  Image
 } from 'react-native';
 import { useDeviceOrientation } from '@react-native-community/hooks';
 import { FlatGrid } from 'react-native-super-grid';
-import { useNavigation } from '@react-navigation/native';
 
-import { Course } from '../../redux/features/courses/types';
 import OCWApi from '../../constants/ocw-api';
 import { backgroundGray, textGray } from '../../utils/colours';
 import { Entypo } from '@expo/vector-icons';
 
-type CourseTileProps = {
-  course: Course
-}
 
-export default function CourseTile({ course }: CourseTileProps) {
-  const navigation = useNavigation();
+export default function CourseScreen({ navigation, route }) {
+  const { course } = route.params;
   const { landscape } = useDeviceOrientation();
 
   const courseRun = course.runs[0];
@@ -34,12 +29,6 @@ export default function CourseTile({ course }: CourseTileProps) {
 
   interface ArrayInfoPieceContainer {
     item: ArrayInfoPiece
-  };
-
-  const onTilePress = () => {
-    navigation.navigate('Course', {
-      course: course
-    });
   };
 
   const createArrayInfoPiece = (data: string[], style: any): ArrayInfoPiece => {
@@ -82,29 +71,29 @@ export default function CourseTile({ course }: CourseTileProps) {
   const arrayInfo = [instructorPiece, departmentPiece, topicPiece];
 
   return (
-    <Pressable
-      style={[styles.container, landscape ? styles.landscape : styles.portrait]}
-      onPress={onTilePress}>
+    <View style={[styles.container, landscape ? styles.landscape : styles.portrait]}>
       <Image
         style={styles.image}
         source={{ uri: OCWApi.URL + course.image_src }}
       />
-      <View style={styles.titleBar}>
-        <Text style={styles.titleBarText}>{course.title}</Text>
-        <View style={styles.courseInfo}>
-          <Text style={[styles.titleBarText, styles.courseInfoText]}>{course.coursenum}</Text>
-          <Text style={[styles.titleBarText, styles.courseInfoText, styles.levelDelimiter]}>|</Text>
-          <Text style={[styles.titleBarText, styles.courseInfoText]}>{courseLevel}</Text>
+      <SafeAreaView style={styles.information}>
+        <View style={styles.titleBar}>
+          <Text style={styles.titleBarText}>{course.title}</Text>
+          <View style={styles.courseInfo}>
+            <Text style={[styles.titleBarText, styles.courseInfoText]}>{course.coursenum}</Text>
+            <Text style={[styles.titleBarText, styles.courseInfoText, styles.levelDelimiter]}>|</Text>
+            <Text style={[styles.titleBarText, styles.courseInfoText]}>{courseLevel}</Text>
+          </View>
         </View>
-      </View>
-      <View style={styles.arrayInfoContainer}>
-        <FlatGrid
-          style={styles.arrayInfoGrid}
-          data={arrayInfo}
-          renderItem={renderArrayInfoPiece}
-        />
-      </View>
-    </Pressable>
+        <View style={styles.arrayInfoContainer}>
+          <FlatGrid
+            style={styles.arrayInfoGrid}
+            data={arrayInfo}
+            renderItem={renderArrayInfoPiece}
+          />
+        </View>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -112,7 +101,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     width: '100%',
-    marginVertical: 20
+    marginTop: 25
   },
   landscape: {
     height: '50%',
@@ -123,8 +112,10 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     aspectRatio: 3 / 2,
-    resizeMode: 'cover',
-    borderRadius: 15,
+    resizeMode: 'cover'
+  },
+  information: {
+    marginHorizontal: 10
   },
   titleBar: {
     marginVertical: 10,
