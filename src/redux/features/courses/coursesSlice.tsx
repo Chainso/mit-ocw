@@ -6,26 +6,44 @@ import {
   createAsyncThunk
 } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { keys } from 'ts-transformer-keys';
 
 import OCWApi from '../../../constants/ocw-api';
 import { RootState } from '../../store';
 import { makeAsyncCallThunk } from '../../utils';
-import { Course, CourseInfo } from './types';
+import { Aggregations, Course, CourseInfo } from './types';
 
 export type CourseState = {
   courses: CourseInfo[],
-  courseDict: Record<number, CourseInfo>
+  courseDict: Record<number, CourseInfo>,
+  aggregations: Aggregations
+};
+
+const makeBucketContainer = () => {
+  return {
+    buckets: []
+  };
 };
 
 const initialCourseState: CourseState = {
   courses: [],
-  courseDict: {}
+  courseDict: {},
+  aggregations: {
+    topics: makeBucketContainer(),
+    offered_by: makeBucketContainer(),
+    audience: makeBucketContainer(),
+    certification: makeBucketContainer(),
+    department_name: makeBucketContainer(),
+    level: makeBucketContainer(),
+    course_feature_tags: makeBucketContainer(),
+    resource_type: makeBucketContainer()
+  }
 };
 
 export const makeAsyncCall = makeAsyncCallThunk('courses/makeAsyncCall');
 export const getCourses = createAsyncThunk('courses/getCourses', async () => {
   return await axios.post(OCWApi.API_URL + OCWApi.SEARCH.URL, OCWApi.SEARCH.BODY)
-    .then((courses) => courses.data.hits.hits.map((course: any): Course => course._source));
+    .then((courses) => courses.data);
 });
 
 export const coursesSlice = createSlice({
@@ -41,8 +59,12 @@ export const coursesSlice = createSlice({
     builder
       .addCase(getCourses.fulfilled,
         (state: Draft<CourseState>,
-          courses: PayloadAction<Course[]>): CourseState => {
-          const courseList = courses.payload.filter((course: Course) => {
+          coursesJson: PayloadAction<any>) => {
+          const courses = coursesJson.payload.hits.hits.map((course: any): Course => course._source);
+
+          state.aggregations = coursesJson.payload.aggregations;
+
+          state.courses = courses.filter((course: Course) => {
             return course.runs.length > 0;
           }).map((course: Course): CourseInfo => {
             return {
@@ -51,15 +73,10 @@ export const coursesSlice = createSlice({
             };
           });
 
-          const courseDict = courseList.reduce((curDict: Record<number, CourseInfo>, courseInfo: CourseInfo) => {
+          state.courseDict = state.courses.reduce((curDict: Record<number, CourseInfo>, courseInfo: CourseInfo) => {
             curDict[courseInfo.course.id] = courseInfo;
             return curDict;
           }, {});
-
-          return {
-            courses: courseList,
-            courseDict: courseDict
-          };
         });
   }
 });
@@ -68,5 +85,6 @@ export const { setCourse } = coursesSlice.actions;
 export const selectCourses = (state: RootState) => state.courses.courses;
 export const selectCourseDict = (state: RootState) => state.courses.courseDict;
 export const selectCourse = (id: number) => (state: RootState) => { return { ...state.courses.courseDict[id] } };
+export const selectAggregations = (state: RootState) => state.courses.aggregations;
 
 export default coursesSlice.reducer;

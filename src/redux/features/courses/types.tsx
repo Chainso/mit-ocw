@@ -91,3 +91,25 @@ export type LectureVideo = {
   thumbnail?: string,
   pageUrl?: string
 };
+
+export type Aggregations = {
+  topics: BucketContainer,
+  offered_by: BucketContainer,
+  audience: BucketContainer,
+  certification: BucketContainer,
+  department_name: BucketContainer,
+  level: BucketContainer,
+  course_feature_tags: BucketContainer,
+  resource_type: BucketContainer
+};
+
+export type BucketContainer = {
+  doc_count_error_upper_bound?: number,
+  sum_other_doc_count?: number,
+  buckets: Bucket[]
+};
+
+export type Bucket = {
+  key: string,
+  doc_count: number
+};
