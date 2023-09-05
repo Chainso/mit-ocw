@@ -28,6 +28,12 @@ export default function CourseScreen({ navigation, route }) {
 
   const dispatch = useAppDispatch();
   const course = useAppSelector(selectCourse(courseId));
+  console.log("Course");
+  console.log(course.course);
+  console.log(course.features);
+
+  // Convert a link like this into just the course slug
+  const courseSlug = course.course.image_src.split('/')[1];
 
   const courseRun = course.course.runs[0];
   const courseLevel = courseRun?.level?.[0]?.charAt(0);
@@ -47,8 +53,9 @@ export default function CourseScreen({ navigation, route }) {
     console.log(featureTagSet);
     console.log(CourseFeatureTags.LECTURE_VIDEOS);
     if (featureTagSet.has(CourseFeatureTags.LECTURE_VIDEOS) && !course.features?.lectureVideos) {
-      parseVideos();
+      // parseVideos();
     }
+    downloadCourse();
   };
 
   const parseVideos = () => {
@@ -73,6 +80,17 @@ export default function CourseScreen({ navigation, route }) {
 
     console.log(course.features.lectureVideos);
   };
+
+  const downloadCourse = () => {
+    console.log("Downloading course");
+
+    const doc = cheerio.load(course.page || '');
+    const downloadSelector = doc(".download-course-link-button");
+    const downloadLink = downloadSelector.attr("href");
+    console.log(downloadLink);
+
+
+  }
 
   useEffect(() => {
     if (course.page) {
@@ -148,6 +166,9 @@ export default function CourseScreen({ navigation, route }) {
             data={arrayInfo}
             renderItem={renderArrayInfoPiece}
           />
+        </View>
+        <View>
+          <Text style={[styles.titleBarText]}>{course.course.short_description}</Text>
         </View>
       </SafeAreaView>
     </View>
