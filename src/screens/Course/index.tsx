@@ -4,12 +4,13 @@ import {
   Text,
   SafeAreaView,
   View,
-  Image
+  Image,
 } from 'react-native';
 import { useDeviceOrientation } from '@react-native-community/hooks';
 import { FlatGrid } from 'react-native-super-grid';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import * as FileSystem from 'expo-file-system';
 
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { selectCourse, setCourse } from '../../redux/features/courses/coursesSlice';
@@ -20,9 +21,11 @@ import {
   CourseFeatureTags,
   LectureVideo
 } from '../../redux/features/courses/types';
+import { Button } from 'react-native-paper';
+import { unzip } from 'react-native-zip-archive';
 
 
-export default function CourseScreen({ navigation, route }) {
+export default function CourseScreen({ navigation, route }): JSX.Element {
   const { courseId } = route.params;
   const { landscape } = useDeviceOrientation();
 
@@ -32,11 +35,15 @@ export default function CourseScreen({ navigation, route }) {
   console.log(course.course);
   console.log(course.features);
 
-  // Convert a link like this into just the course slug
-  const courseSlug = course.course.image_src.split('/')[1];
-
   const courseRun = course.course.runs[0];
   const courseLevel = courseRun?.level?.[0]?.charAt(0);
+  const downloadFileId = [course.course.coursenum, courseRun.semester, courseRun.year].join("-").toLowerCase()
+  const downloadFileName = downloadFileId + ".zip";
+  const downloadLink = [courseRun.slug, downloadFileName].join("/");
+
+  console.log("download link");
+  console.log(downloadFileName);
+  console.log(downloadLink);
 
   type ArrayInfoPiece = {
     displayText: string,
@@ -55,7 +62,7 @@ export default function CourseScreen({ navigation, route }) {
     if (featureTagSet.has(CourseFeatureTags.LECTURE_VIDEOS) && !course.features?.lectureVideos) {
       // parseVideos();
     }
-    downloadCourse();
+    // downloadCourse();
   };
 
   const parseVideos = () => {
@@ -81,15 +88,46 @@ export default function CourseScreen({ navigation, route }) {
     console.log(course.features.lectureVideos);
   };
 
-  const downloadCourse = () => {
+  const downloadCourse = async () => {
     console.log("Downloading course");
+    console.log(downloadFileName);
 
-    const doc = cheerio.load(course.page || '');
-    const downloadSelector = doc(".download-course-link-button");
-    const downloadLink = downloadSelector.attr("href");
-    console.log(downloadLink);
+    console.log("to", FileSystem.documentDirectory + downloadFileName);
+    console.log("from", [OCWApi.URL, downloadLink].join("/"));
 
+    const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+    if (!permissions.granted) {
+        return;
+    }
 
+    console.log("Granted permissions to download to", permissions.directoryUri);
+    const zipUri = FileSystem.cacheDirectory + downloadFileName;
+
+    const downloadResumable = FileSystem.createDownloadResumable(
+      [OCWApi.URL, downloadLink].join("/"),
+      zipUri,
+      {},
+      downloadProgress => {
+        const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
+        console.log(progress, downloadProgress.totalBytesWritten, downloadProgress.totalBytesExpectedToWrite);
+        // setDownloadProgress(progress);
+      }
+    )
+
+    try {
+      const downloadResult = await downloadResumable.downloadAsync();
+      console.log("Finished downloading to", zipUri);
+      console.log("Result")
+      console.log(downloadResult);
+      // const unzipDir = FileSystem.documentDirectory + downloadFileId;
+      const unzipDir = permissions.directoryUri + downloadFileId;
+      console.log("Unzipping to", unzipDir);
+      const unzipped = await unzip(zipUri, unzipDir);
+      console.log("Unzipped to", unzipped);
+    } catch (e) {
+      console.log("Error downloading");
+      console.log(e);
+    }
   }
 
   useEffect(() => {
@@ -166,6 +204,11 @@ export default function CourseScreen({ navigation, route }) {
             data={arrayInfo}
             renderItem={renderArrayInfoPiece}
           />
+        </View>
+        <View>
+          <Button icon="download" mode="contained" onPress={downloadCourse}>
+            Download Course
+          </Button>
         </View>
         <View>
           <Text style={[styles.titleBarText]}>{course.course.short_description}</Text>
