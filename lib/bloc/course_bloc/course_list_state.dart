@@ -11,9 +11,10 @@ class CourseListLoadingState extends CourseListState {
 }
 
 class CourseListLoadedState extends CourseListState {
-  final List<Course> courses;
+  final Map<int, Course> courses;
 
-  CourseListLoadedState(this.courses);
+  CourseListLoadedState(List<Course> courseList) :
+    courses = { for (var course in courseList) course.id : course };
 
   @override
   List<Object?> get props => [courses];

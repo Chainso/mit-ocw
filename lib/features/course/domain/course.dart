@@ -182,7 +182,7 @@ class Course {
     @JsonKey(name: "short_description")
     String shortDescription;
     @JsonKey(name: "full_description")
-    dynamic fullDescription;
+    String? fullDescription;
     @JsonKey(name: "platform")
     Platform platform;
     @JsonKey(name: "title")
@@ -405,7 +405,7 @@ class Run {
     @JsonKey(name: "short_description")
     String shortDescription;
     @JsonKey(name: "full_description")
-    dynamic fullDescription;
+    String? fullDescription;
     @JsonKey(name: "language")
     dynamic language;
     @JsonKey(name: "semester")
