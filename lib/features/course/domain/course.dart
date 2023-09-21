@@ -281,6 +281,8 @@ enum CourseFeatureTag {
     IMAGE_GALLERY,
     @JsonValue("Instructor Insights")
     INSTRUCTOR_INSIGHTS,
+    @JsonValue("Labs")
+    LABS,
     @JsonValue("Lecture Audio")
     LECTURE_AUDIO,
     @JsonValue("Lecture Notes")

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:mit_ocw/config/ocw_config.dart';
 import 'package:mit_ocw/features/course/domain/course.dart';
 
@@ -9,7 +11,7 @@ class CourseRepository {
   final dio = Dio();
 
   Future<List<Course>> getCourses() async {
-    print(_searchUrl);
+    log(_searchUrl);
 
     final response = await dio.post(
       _searchUrl,

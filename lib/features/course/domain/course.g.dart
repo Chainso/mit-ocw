@@ -233,6 +233,7 @@ const _$CourseFeatureTagEnumMap = {
   CourseFeatureTag.EXAM_MATERIALS: 'Exam Materials',
   CourseFeatureTag.IMAGE_GALLERY: 'Image Gallery',
   CourseFeatureTag.INSTRUCTOR_INSIGHTS: 'Instructor Insights',
+  CourseFeatureTag.LABS: 'Labs',
   CourseFeatureTag.LECTURE_AUDIO: 'Lecture Audio',
   CourseFeatureTag.LECTURE_NOTES: 'Lecture Notes',
   CourseFeatureTag.LECTURE_VIDEOS: 'Lecture Videos',
