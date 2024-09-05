@@ -1,7 +1,8 @@
 // GoRouter configuration
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mit_ocw/features/course/presentation/course_screen.dart';
+import 'package:mit_ocw/features/course/presentation/course_home.dart';
+import 'package:mit_ocw/features/course/presentation/course_lecture_list.dart';
 import 'package:mit_ocw/home.dart';
 
 part "routes.g.dart";
@@ -19,7 +20,7 @@ StatefulShellRoute rootRoute() {
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           // Here we take the value from the MyHomePage object that was created by
           // the App.build method, and use it to set our appbar title.
-          title: const Text("stateful route title"),
+          // title: const Text("stateful route title"),
         ),
         body: navigationShell,
       );
@@ -36,11 +37,19 @@ StatefulShellRoute rootRoute() {
 @TypedGoRoute<HomeScreenRoute>(
   path: '/',
   routes: [
-    TypedGoRoute<CourseScreenRoute>(
-      path: 'course/:courseId',
+    TypedShellRoute<CourseScreenRoute>(
+      routes: [
+        TypedGoRoute<CourseHomeRoute>(
+          path: "course/:courseId/home",
+        ),
+        TypedGoRoute<CourseLecturesScreenRoute>(
+          path: "course/:courseId/lectures",
+        ),
+      ],
     ),
   ],
 )
+
 @immutable
 class HomeScreenRoute extends GoRouteData {
   @override
@@ -50,14 +59,69 @@ class HomeScreenRoute extends GoRouteData {
 }
 
 @immutable
-class CourseScreenRoute extends GoRouteData {
-  const CourseScreenRoute({required this.courseId});
+class CourseScreenRoute extends ShellRouteData {
+  const CourseScreenRoute();
+
+  @override
+  Widget builder(BuildContext context, GoRouterState state, Widget navigator) {
+    final courseId = int.parse(state.pathParameters['courseId']!);
+
+    print("CourseScreenRoute builder");
+    return Scaffold(
+      drawer: Drawer(
+        child: ListView(
+          children: [
+            ListTile(
+              title: const Text("Home"),
+              onTap: () {
+                Navigator.pop(context);
+                CourseHomeRoute(courseId: courseId).go(context);
+              },
+            ),
+            ListTile(
+              title: const Text("Lectures"),
+              onTap: () {
+                Navigator.pop(context);
+                CourseLecturesScreenRoute(courseId: courseId).go(context);
+              },
+            ),
+          ],
+        ),
+      ),
+      body: navigator,
+      appBar: AppBar(
+        // TRY THIS: Try changing the color here to a specific color (to
+        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
+        // change color while the other colors stay the same.
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        // Here we take the value from the MyHomePage object that was created by
+        // the App.build method, and use it to set our appbar title.
+      ),
+    );
+  }
+}
+
+@immutable
+class CourseHomeRoute extends GoRouteData {
+  final int courseId;
+
+  const CourseHomeRoute({required this.courseId});
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return CourseHomeScreen(courseId: courseId);
+  }
+}
+
+@immutable
+class CourseLecturesScreenRoute extends GoRouteData {
+  const CourseLecturesScreenRoute({required this.courseId});
 
   final int courseId;
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return CourseScreen(courseId: courseId);
+    return CourseLecturesScreen(courseId: courseId);
   }
 }
 

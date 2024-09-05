@@ -1,30 +1,161 @@
 import 'dart:developer';
 
+import 'package:elastic_client/elastic_client.dart' as elastic;
 import 'package:mit_ocw/config/ocw_config.dart';
 import 'package:mit_ocw/features/course/domain/course.dart';
 
 import 'package:dio/dio.dart';
+import 'package:mit_ocw/features/course/domain/lecture.dart';
+import 'package:mit_ocw/util/elastic_search.dart';
 
 class CourseRepository {
   final String _courseUrl = "$ocwApiUrl/courses";
   final String _searchUrl = "$ocwApiUrl/search/";
   final dio = Dio();
 
-  Future<List<Course>> getCourses() async {
-    log(_searchUrl);
+  final Map<dynamic, dynamic> ocwFilter = elastic.Query.bool(
+    must: [
+      elastic.Query.term("offered_by", ["OCW"]),
+    ],
+  );
+
+  late final Map<dynamic, dynamic> courseFilter = elastic.Query.bool(
+    must: [
+      elastic.Query.term("object_type.keyword", ["course"]),
+      ocwFilter
+    ],
+  );
+
+  late final Map<dynamic, dynamic> videoFilter = elastic.Query.bool(
+    must: [
+      elastic.Query.term("object_type.keyword", ["resourcefile"]),
+      elastic.Query.term("content_type", ["video"])
+    ],
+  );
+
+  late final Map<dynamic, dynamic> lectureVideoFilter = elastic.Query.bool(
+    must: [
+      videoFilter,
+      elastic.Query.term("resource_type", [CourseFeatureTag.LECTURE_VIDEOS.toJson()]),
+    ],
+  );
+
+  Future<List<FullCourseRun>> getCourses() async {
+    print(_searchUrl);
+    print(allCoursesQuery);
+    print(allCoursesQuery.toJson());
 
     final response = await dio.post(
       _searchUrl,
-      data: searchRequest,
+      data: allCoursesQuery.toJson(),
     );
 
     if (response.statusCode == 200) {
-      final courseSearch = CourseSearch.fromJson(response.data);
-      return courseSearch.hits.hits.map((hit) => hit.source).toList();
+      final courseSearch = DocSearch<Course>.fromJson(response.data, Course.fromJsonModel);
+      final List<Course> courses = courseSearch.hits.hits.map((hit) => hit.source).toList();
+
+      final coursesWithRuns = courses.where((course) => course.runs.isNotEmpty).toList();
+      final List<FullCourseRun> fullCourseRuns = coursesWithRuns.map((course) => FullCourseRun.fromCourse(course)).toList();
+
+      return fullCourseRuns;
     } else {
       throw Exception('Failed to load courses');
     }
   }
+
+  Future<Course?> getCourse(String coursenum) async {
+    ElasticSearchQuery courseQuery = ElasticSearchQuery(
+      from: 0,
+      size: 100,
+      query: elastic.Query.bool(
+        must: [
+          courseFilter,
+          elastic.Query.term("coursenum", [coursenum]),
+        ],
+      ),
+    );
+
+    final response = await dio.post(
+      _searchUrl,
+      data: courseQuery.toJson(),
+    );
+
+    if (response.statusCode == 200) {
+      final courseSearch = DocSearch<Course>.fromJson(response.data, Course.fromJsonModel);
+      List<Hit> hits = courseSearch.hits.hits;
+      return hits.firstOrNull?.source;
+    } else {
+      throw Exception('Failed to load course $coursenum');
+    }
+  }
+
+  Future<List<Lecture>> getLectureVideos(String coursenum) async {
+    ElasticSearchQuery courseQuery = ElasticSearchQuery(
+      from: 0,
+      size: 100,
+      query: elastic.Query.bool(
+        must: [
+          lectureVideoFilter,
+          elastic.Query.term("coursenum", [coursenum]),
+        ],
+      ),
+    );
+
+    print("Getting lectures for $coursenum");
+    print(courseQuery.toJson());
+
+    final response = await dio.post(
+      _searchUrl,
+      data: courseQuery.toJson(),
+    );
+
+    if (response.statusCode == 200) {
+      print("Got lectures response");
+      print(response.data);
+      final lectureSearch = DocSearch<Lecture>.fromJson(response.data, Lecture.fromJsonModel);
+      final lectures = lectureSearch.hits.hits.map((hit) => hit.source).toList();
+      print("Converted Lectures");
+      print(lectures);
+      return lectures;
+    } else {
+      throw Exception('Failed to load course $coursenum');
+    }
+  }
+
+  Future<List<Course>> searchCourse(String titleSearch) async {
+    ElasticSearchQuery courseQuery = searchCourseQuery(titleSearch);
+
+    final response = await dio.post(
+      _searchUrl,
+      data: courseQuery.toJson(),
+    );
+
+    if (response.statusCode == 200) {
+      final courseSearch = DocSearch<Course>.fromJson(response.data, Course.fromJsonModel);
+      return courseSearch.hits.hits.map((hit) => hit.source).toList();
+    } else {
+      throw Exception('Failed to load course using search string $titleSearch');
+    }
+  }
+
+  ElasticSearchQuery searchCourseQuery(String titleSearch) {
+    return ElasticSearchQuery(
+      from: 0,
+      size: 100,
+      query: elastic.Query.bool(
+        must: [
+          courseFilter,
+          elastic.Query.term("title", [titleSearch]),
+        ],
+      ),
+    );
+  }
+  
+  late final ElasticSearchQuery allCoursesQuery = ElasticSearchQuery(
+    from: 0,
+    size: 100,
+    query: courseFilter
+  );
 
   final Map<String, dynamic> searchRequest = {
     "from": 0,

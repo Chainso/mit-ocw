@@ -2,7 +2,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mit_ocw/features/course/data/course_repository.dart';
 import 'package:mit_ocw/features/course/domain/course.dart';
 
-
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
 

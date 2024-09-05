@@ -1,7 +1,7 @@
 part of "course_bloc.dart";
 
 @immutable
-abstract class CourseListState extends Equatable {
+sealed class CourseListState extends Equatable {
 
 }
 
@@ -11,10 +11,10 @@ class CourseListLoadingState extends CourseListState {
 }
 
 class CourseListLoadedState extends CourseListState {
-  final Map<int, Course> courses;
+  final Map<int, FullCourseRun> courses;
 
-  CourseListLoadedState(List<Course> courseList) :
-    courses = { for (var course in courseList) course.id : course };
+  CourseListLoadedState(List<FullCourseRun> courseList) :
+    courses = { for (var courseRun in courseList) courseRun.course.id : courseRun };
 
   @override
   List<Object?> get props => [courses];
@@ -28,3 +28,4 @@ class CourseListErrorState extends CourseListState {
   @override
   List<Object?> get props => [error];
 }
+

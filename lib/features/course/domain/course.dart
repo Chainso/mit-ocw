@@ -2,8 +2,8 @@ import 'package:json_annotation/json_annotation.dart';
 
 part "course.g.dart";
 
-@JsonSerializable()
-class CourseSearch {
+@JsonSerializable(genericArgumentFactories: true)
+class DocSearch<T> {
     @JsonKey(name: "took")
     int took;
     @JsonKey(name: "timed_out")
@@ -11,28 +11,57 @@ class CourseSearch {
     @JsonKey(name: "_shards")
     Shards shards;
     @JsonKey(name: "hits")
-    Hits hits;
-    @JsonKey(name: "aggregations")
-    Aggregations aggregations;
+    Hits<T> hits;
     @JsonKey(name: "suggest")
     List<dynamic> suggest;
 
-    CourseSearch({
+    DocSearch({
         required this.took,
         required this.timedOut,
         required this.shards,
         required this.hits,
+        required this.suggest,
+    });
+
+    factory DocSearch.fromJson(
+        Map<String, dynamic> json,
+        T Function(Object? json) fromJsonT,
+    ) => _$DocSearchFromJson(json, fromJsonT);
+
+    Map<String, dynamic> toJson(Object Function(T) toJsonT) => _$DocSearchToJson(this, toJsonT);
+}
+
+@JsonSerializable(genericArgumentFactories: true)
+class AggregationSearch<T> {
+    @JsonKey(name: "took")
+    int took;
+    @JsonKey(name: "timed_out")
+    bool timedOut;
+    @JsonKey(name: "_shards")
+    Shards shards;
+    @JsonKey(name: "aggregations")
+    T aggregations;
+    @JsonKey(name: "suggest")
+    List<dynamic> suggest;
+
+    AggregationSearch({
+        required this.took,
+        required this.timedOut,
+        required this.shards,
         required this.aggregations,
         required this.suggest,
     });
 
-    factory CourseSearch.fromJson(Map<String, dynamic> json) => _$CourseSearchFromJson(json);
+    factory AggregationSearch.fromJson(
+        Map<String, dynamic> json,
+        T Function(Object? json) fromJsonT,
+    ) => _$AggregationSearchFromJson(json, fromJsonT);
 
-    Map<String, dynamic> toJson() => _$CourseSearchToJson(this);
+    Map<String, dynamic> toJson(Object Function(T) toJsonT) => _$AggregationSearchToJson(this, toJsonT);
 }
 
 @JsonSerializable()
-class Aggregations {
+class CourseAggregations {
     @JsonKey(name: "type")
     AudienceClass type;
     @JsonKey(name: "topics")
@@ -52,7 +81,7 @@ class Aggregations {
     @JsonKey(name: "resource_type")
     AudienceClass resourceType;
 
-    Aggregations({
+    CourseAggregations({
         required this.type,
         required this.topics,
         required this.offeredBy,
@@ -64,9 +93,9 @@ class Aggregations {
         required this.resourceType,
     });
 
-    factory Aggregations.fromJson(Map<String, dynamic> json) => _$AggregationsFromJson(json);
+    factory CourseAggregations.fromJson(Map<String, dynamic> json) => _$CourseAggregationsFromJson(json);
 
-    Map<String, dynamic> toJson() => _$AggregationsToJson(this);
+    Map<String, dynamic> toJson() => _$CourseAggregationsToJson(this);
 }
 
 @JsonSerializable()
@@ -120,14 +149,14 @@ class LevelClass {
     Map<String, dynamic> toJson() => _$LevelClassToJson(this);
 }
 
-@JsonSerializable()
-class Hits {
+@JsonSerializable(genericArgumentFactories: true)
+class Hits<T> {
     @JsonKey(name: "total")
     int total;
     @JsonKey(name: "max_score")
-    double maxScore;
+    double? maxScore;
     @JsonKey(name: "hits")
-    List<Hit> hits;
+    List<Hit<T>> hits;
 
     Hits({
         required this.total,
@@ -135,15 +164,19 @@ class Hits {
         required this.hits,
     });
 
-    factory Hits.fromJson(Map<String, dynamic> json) => _$HitsFromJson(json);
+    factory Hits.fromJson(
+        Map<String, dynamic> json,
+        T Function(Object? json) fromJsonT,
+    ) => _$HitsFromJson(json, fromJsonT);
 
-    Map<String, dynamic> toJson() => _$HitsToJson(this);
+
+    Map<String, dynamic> toJson(Object? Function(T) toJsonT) => _$HitsToJson(this, toJsonT);
 }
 
-@JsonSerializable()
-class Hit {
+@JsonSerializable(genericArgumentFactories: true)
+class Hit<T> {
     @JsonKey(name: "_index")
-    Index index;
+    String index;
     @JsonKey(name: "_type")
     Type type;
     @JsonKey(name: "_id")
@@ -151,7 +184,7 @@ class Hit {
     @JsonKey(name: "_score")
     double score;
     @JsonKey(name: "_source")
-    Course source;
+    T source;
 
     Hit({
         required this.index,
@@ -161,14 +194,34 @@ class Hit {
         required this.source,
     });
 
-    factory Hit.fromJson(Map<String, dynamic> json) => _$HitFromJson(json);
+    factory Hit.fromJson(
+        Map<String, dynamic> json,
+        T Function(Object? json) fromJsonT,
+    ) => _$HitFromJson<T>(json, fromJsonT);
 
-    Map<String, dynamic> toJson() => _$HitToJson(this);
+    Map<String, dynamic> toJson(Object? Function(T) toJsonT) => _$HitToJson<T>(this, toJsonT);
 }
 
-enum Index {
-    @JsonValue("discussions_course_04a2ab5166654d39b8fbe8b12222e18a")
-    DISCUSSIONS_COURSE_04_A2_AB5166654_D39_B8_FBE8_B12222_E18_A
+@JsonSerializable()
+class FullCourseRun {
+    @JsonKey(name: "course")
+    Course course;
+    @JsonKey(name: "run")
+    Run run;
+
+    FullCourseRun({
+        required this.course,
+        required this.run,
+    });
+
+    factory FullCourseRun.fromCourse(Course course) => FullCourseRun(
+      course: course,
+      run: course.runs[0],
+    );
+
+    factory FullCourseRun.fromJson(Map<String, dynamic> json) => _$FullCourseRunFromJson(json);
+
+    Map<String, dynamic> toJson() => _$FullCourseRunToJson(this);
 }
 
 @JsonSerializable()
@@ -247,15 +300,18 @@ class Course {
     });
 
     factory Course.fromJson(Map<String, dynamic> json) => _$CourseFromJson(json);
+    factory Course.fromJsonModel(Object? json) => Course.fromJson(json as Map<String, dynamic>);
 
     Map<String, dynamic> toJson() => _$CourseToJson(this);
 }
 
+@JsonEnum()
 enum AudienceElement {
     @JsonValue("Open Content")
     OPEN_CONTENT
 }
 
+@JsonEnum()
 enum CourseFeatureTag {
     @JsonValue("Activity Assignments")
     ACTIVITY_ASSIGNMENTS,
@@ -341,6 +397,10 @@ enum CourseFeatureTag {
     WRITTEN_ASSIGNMENTS_WITH_EXAMPLES
 }
 
+extension CourseFeatureTagExtension on CourseFeatureTag {
+  String toJson() => _$CourseFeatureTagEnumMap[this]!;
+}
+
 @JsonSerializable()
 class DepartmentCourseNumber {
     @JsonKey(name: "coursenum")
@@ -366,7 +426,9 @@ class DepartmentCourseNumber {
 
 enum ObjectType {
     @JsonValue("course")
-    COURSE
+    COURSE,
+    @JsonValue("resourcefile")
+    RESOURCEFILE
 }
 
 enum OfferedBy {

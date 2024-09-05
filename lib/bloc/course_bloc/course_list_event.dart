@@ -9,3 +9,4 @@ class CourseListLoadEvent extends CourseListEvent {
   @override
   List<Object?> get props => [];
 }
+

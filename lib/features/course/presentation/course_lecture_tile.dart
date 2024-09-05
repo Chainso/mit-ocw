@@ -2,18 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:mit_ocw/config/ocw_config.dart';
 import 'package:mit_ocw/features/course/domain/course.dart';
+import 'package:mit_ocw/features/course/domain/lecture.dart';
 import 'package:mit_ocw/routes.dart';
 
-class CourseTile extends StatefulWidget {
-  const CourseTile({super.key, required this.courseRun});
+class LectureTile extends StatefulWidget {
+  const LectureTile({super.key, required this.courseRun, required this.lecture});
 
   final FullCourseRun courseRun;
+  final Lecture lecture;
 
   @override
-  State<CourseTile> createState() => _CourseTileState();
+  State<LectureTile> createState() => _LectureTileState();
 }
 
-class _CourseTileState extends State<CourseTile> {
+class _LectureTileState extends State<LectureTile> {
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -24,7 +26,7 @@ class _CourseTileState extends State<CourseTile> {
         },
         child: Column(
           children: <Widget>[
-            Image.network(ocwUrl + widget.courseRun.course.imageSrc),
+            Image.network(widget.lecture.imageSrc!),
             ListTile(
               title: Row(
                 children: [
@@ -33,7 +35,7 @@ class _CourseTileState extends State<CourseTile> {
                     child: Column(
                       children: [
                         Text(
-                          widget.courseRun.course.title,
+                          widget.lecture.title,
                           textAlign: TextAlign.left,
                           softWrap: true,
                           style: const TextStyle(
@@ -78,7 +80,7 @@ class _CourseTileState extends State<CourseTile> {
                   ),
                 ],
               ),
-              subtitle: MarkdownBody(data: widget.courseRun.course.shortDescription),
+              subtitle: widget.lecture.shortDescription != null ? MarkdownBody(data: widget.lecture.shortDescription!) : null,
             )
           ]
         ),

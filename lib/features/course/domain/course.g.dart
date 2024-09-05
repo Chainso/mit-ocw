@@ -6,27 +6,59 @@ part of 'course.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-CourseSearch _$CourseSearchFromJson(Map<String, dynamic> json) => CourseSearch(
-      took: json['took'] as int,
+DocSearch<T> _$DocSearchFromJson<T>(
+  Map<String, dynamic> json,
+  T Function(Object? json) fromJsonT,
+) =>
+    DocSearch<T>(
+      took: (json['took'] as num).toInt(),
       timedOut: json['timed_out'] as bool,
       shards: Shards.fromJson(json['_shards'] as Map<String, dynamic>),
-      hits: Hits.fromJson(json['hits'] as Map<String, dynamic>),
-      aggregations:
-          Aggregations.fromJson(json['aggregations'] as Map<String, dynamic>),
+      hits: Hits<T>.fromJson(
+          json['hits'] as Map<String, dynamic>, (value) => fromJsonT(value)),
       suggest: json['suggest'] as List<dynamic>,
     );
 
-Map<String, dynamic> _$CourseSearchToJson(CourseSearch instance) =>
+Map<String, dynamic> _$DocSearchToJson<T>(
+  DocSearch<T> instance,
+  Object? Function(T value) toJsonT,
+) =>
     <String, dynamic>{
       'took': instance.took,
       'timed_out': instance.timedOut,
       '_shards': instance.shards,
-      'hits': instance.hits,
-      'aggregations': instance.aggregations,
+      'hits': instance.hits.toJson(
+        (value) => toJsonT(value),
+      ),
       'suggest': instance.suggest,
     };
 
-Aggregations _$AggregationsFromJson(Map<String, dynamic> json) => Aggregations(
+AggregationSearch<T> _$AggregationSearchFromJson<T>(
+  Map<String, dynamic> json,
+  T Function(Object? json) fromJsonT,
+) =>
+    AggregationSearch<T>(
+      took: (json['took'] as num).toInt(),
+      timedOut: json['timed_out'] as bool,
+      shards: Shards.fromJson(json['_shards'] as Map<String, dynamic>),
+      aggregations: fromJsonT(json['aggregations']),
+      suggest: json['suggest'] as List<dynamic>,
+    );
+
+Map<String, dynamic> _$AggregationSearchToJson<T>(
+  AggregationSearch<T> instance,
+  Object? Function(T value) toJsonT,
+) =>
+    <String, dynamic>{
+      'took': instance.took,
+      'timed_out': instance.timedOut,
+      '_shards': instance.shards,
+      'aggregations': toJsonT(instance.aggregations),
+      'suggest': instance.suggest,
+    };
+
+CourseAggregations _$CourseAggregationsFromJson(Map<String, dynamic> json) =>
+    CourseAggregations(
       type: AudienceClass.fromJson(json['type'] as Map<String, dynamic>),
       topics: AudienceClass.fromJson(json['topics'] as Map<String, dynamic>),
       offeredBy:
@@ -44,7 +76,7 @@ Aggregations _$AggregationsFromJson(Map<String, dynamic> json) => Aggregations(
           AudienceClass.fromJson(json['resource_type'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$AggregationsToJson(Aggregations instance) =>
+Map<String, dynamic> _$CourseAggregationsToJson(CourseAggregations instance) =>
     <String, dynamic>{
       'type': instance.type,
       'topics': instance.topics,
@@ -59,8 +91,9 @@ Map<String, dynamic> _$AggregationsToJson(Aggregations instance) =>
 
 AudienceClass _$AudienceClassFromJson(Map<String, dynamic> json) =>
     AudienceClass(
-      docCountErrorUpperBound: json['doc_count_error_upper_bound'] as int,
-      sumOtherDocCount: json['sum_other_doc_count'] as int,
+      docCountErrorUpperBound:
+          (json['doc_count_error_upper_bound'] as num).toInt(),
+      sumOtherDocCount: (json['sum_other_doc_count'] as num).toInt(),
       buckets: (json['buckets'] as List<dynamic>)
           .map((e) => Bucket.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -75,7 +108,7 @@ Map<String, dynamic> _$AudienceClassToJson(AudienceClass instance) =>
 
 Bucket _$BucketFromJson(Map<String, dynamic> json) => Bucket(
       key: json['key'] as String,
-      docCount: json['doc_count'] as int,
+      docCount: (json['doc_count'] as num).toInt(),
     );
 
 Map<String, dynamic> _$BucketToJson(Bucket instance) => <String, dynamic>{
@@ -94,47 +127,75 @@ Map<String, dynamic> _$LevelClassToJson(LevelClass instance) =>
       'buckets': instance.buckets,
     };
 
-Hits _$HitsFromJson(Map<String, dynamic> json) => Hits(
-      total: json['total'] as int,
-      maxScore: (json['max_score'] as num).toDouble(),
+Hits<T> _$HitsFromJson<T>(
+  Map<String, dynamic> json,
+  T Function(Object? json) fromJsonT,
+) =>
+    Hits<T>(
+      total: (json['total'] as num).toInt(),
+      maxScore: (json['max_score'] as num?)?.toDouble(),
       hits: (json['hits'] as List<dynamic>)
-          .map((e) => Hit.fromJson(e as Map<String, dynamic>))
+          .map((e) => Hit<T>.fromJson(
+              e as Map<String, dynamic>, (value) => fromJsonT(value)))
           .toList(),
     );
 
-Map<String, dynamic> _$HitsToJson(Hits instance) => <String, dynamic>{
+Map<String, dynamic> _$HitsToJson<T>(
+  Hits<T> instance,
+  Object? Function(T value) toJsonT,
+) =>
+    <String, dynamic>{
       'total': instance.total,
       'max_score': instance.maxScore,
-      'hits': instance.hits,
+      'hits': instance.hits
+          .map((e) => e.toJson(
+                (value) => toJsonT(value),
+              ))
+          .toList(),
     };
 
-Hit _$HitFromJson(Map<String, dynamic> json) => Hit(
-      index: $enumDecode(_$IndexEnumMap, json['_index']),
+Hit<T> _$HitFromJson<T>(
+  Map<String, dynamic> json,
+  T Function(Object? json) fromJsonT,
+) =>
+    Hit<T>(
+      index: json['_index'] as String,
       type: $enumDecode(_$TypeEnumMap, json['_type']),
       id: json['_id'] as String,
       score: (json['_score'] as num).toDouble(),
-      source: Course.fromJson(json['_source'] as Map<String, dynamic>),
+      source: fromJsonT(json['_source']),
     );
 
-Map<String, dynamic> _$HitToJson(Hit instance) => <String, dynamic>{
-      '_index': _$IndexEnumMap[instance.index]!,
+Map<String, dynamic> _$HitToJson<T>(
+  Hit<T> instance,
+  Object? Function(T value) toJsonT,
+) =>
+    <String, dynamic>{
+      '_index': instance.index,
       '_type': _$TypeEnumMap[instance.type]!,
       '_id': instance.id,
       '_score': instance.score,
-      '_source': instance.source,
+      '_source': toJsonT(instance.source),
     };
-
-const _$IndexEnumMap = {
-  Index.DISCUSSIONS_COURSE_04_A2_AB5166654_D39_B8_FBE8_B12222_E18_A:
-      'discussions_course_04a2ab5166654d39b8fbe8b12222e18a',
-};
 
 const _$TypeEnumMap = {
   Type.DOC: '_doc',
 };
 
+FullCourseRun _$FullCourseRunFromJson(Map<String, dynamic> json) =>
+    FullCourseRun(
+      course: Course.fromJson(json['course'] as Map<String, dynamic>),
+      run: Run.fromJson(json['run'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$FullCourseRunToJson(FullCourseRun instance) =>
+    <String, dynamic>{
+      'course': instance.course,
+      'run': instance.run,
+    };
+
 Course _$CourseFromJson(Map<String, dynamic> json) => Course(
-      id: json['id'] as int,
+      id: (json['id'] as num).toInt(),
       courseId: json['course_id'] as String,
       coursenum: json['coursenum'] as String,
       shortDescription: json['short_description'] as String,
@@ -270,6 +331,7 @@ const _$CourseFeatureTagEnumMap = {
 
 const _$ObjectTypeEnumMap = {
   ObjectType.COURSE: 'course',
+  ObjectType.RESOURCEFILE: 'resourcefile',
 };
 
 DepartmentCourseNumber _$DepartmentCourseNumberFromJson(
@@ -305,13 +367,13 @@ const _$NameEnumMap = {
 };
 
 Run _$RunFromJson(Map<String, dynamic> json) => Run(
-      id: json['id'] as int,
+      id: (json['id'] as num).toInt(),
       runId: json['run_id'] as String,
       shortDescription: json['short_description'] as String,
       fullDescription: json['full_description'] as String?,
       language: json['language'],
       semester: $enumDecode(_$SemesterEnumMap, json['semester']),
-      year: json['year'] as int,
+      year: (json['year'] as num).toInt(),
       level: (json['level'] as List<dynamic>?)
           ?.map((e) => $enumDecode(_$LevelElementEnumMap, e))
           .toList(),
@@ -396,10 +458,10 @@ const _$ModeEnumMap = {
 };
 
 Shards _$ShardsFromJson(Map<String, dynamic> json) => Shards(
-      total: json['total'] as int,
-      successful: json['successful'] as int,
-      skipped: json['skipped'] as int,
-      failed: json['failed'] as int,
+      total: (json['total'] as num).toInt(),
+      successful: (json['successful'] as num).toInt(),
+      skipped: (json['skipped'] as num).toInt(),
+      failed: (json['failed'] as num).toInt(),
     );
 
 Map<String, dynamic> _$ShardsToJson(Shards instance) => <String, dynamic>{
