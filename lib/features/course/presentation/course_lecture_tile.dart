@@ -6,10 +6,16 @@ import 'package:mit_ocw/features/course/domain/lecture.dart';
 import 'package:mit_ocw/routes.dart';
 
 class LectureTile extends StatefulWidget {
-  const LectureTile({super.key, required this.courseRun, required this.lecture});
+  const LectureTile({
+    super.key,
+    required this.courseRun,
+    required this.lecture,
+    required this.onTap,
+  });
 
   final FullCourseRun courseRun;
   final Lecture lecture;
+  final VoidCallback onTap;
 
   @override
   State<LectureTile> createState() => _LectureTileState();
@@ -20,10 +26,8 @@ class _LectureTileState extends State<LectureTile> {
   Widget build(BuildContext context) {
     return Card(
       clipBehavior: Clip.antiAlias,
-      child: GestureDetector(
-        onTap: () {
-          CourseHomeRoute(courseId: widget.courseRun.course.id).go(context);
-        },
+      child: InkWell(
+        onTap: widget.onTap,
         child: Column(
           children: <Widget>[
             Image.network(widget.lecture.imageSrc!),
@@ -39,15 +43,15 @@ class _LectureTileState extends State<LectureTile> {
                           textAlign: TextAlign.left,
                           softWrap: true,
                           style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
-                            widget.courseRun.run.instructors.join(", "),
-                            textAlign: TextAlign.left,
-                            softWrap: true,
-                            style: const TextStyle(fontWeight: FontWeight.bold)
+                          widget.courseRun.run.instructors.join(", "),
+                          textAlign: TextAlign.left,
+                          softWrap: true,
+                          style: const TextStyle(fontWeight: FontWeight.bold)
                         ),
                       ],
                     ),
@@ -70,10 +74,10 @@ class _LectureTileState extends State<LectureTile> {
                           ),
                         ),
                         Text(
-                            widget.courseRun.course.departmentName.join(", "),
-                            textAlign: TextAlign.left,
-                            softWrap: true,
-                            style: const TextStyle(fontWeight: FontWeight.bold)
+                          widget.courseRun.course.departmentName.join(", "),
+                          textAlign: TextAlign.left,
+                          softWrap: true,
+                          style: const TextStyle(fontWeight: FontWeight.bold)
                         ),
                       ],
                     ),

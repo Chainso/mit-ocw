@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mit_ocw/features/course/presentation/course_home.dart';
 import 'package:mit_ocw/features/course/presentation/course_lecture_list.dart';
 import 'package:mit_ocw/home.dart';
+import 'package:mit_ocw/features/course/presentation/video_player_screen.dart';
 
 part "routes.g.dart";
 
@@ -44,6 +45,10 @@ StatefulShellRoute rootRoute() {
         ),
         TypedGoRoute<CourseLecturesScreenRoute>(
           path: "course/:courseId/lectures",
+        ),
+        // Add this new route
+        TypedGoRoute<VideoPlayerScreenRoute>(
+          path: "course/:courseId/lecture/:lectureKey",
         ),
       ],
     ),
@@ -122,6 +127,22 @@ class CourseLecturesScreenRoute extends GoRouteData {
   @override
   Widget build(BuildContext context, GoRouterState state) {
     return CourseLecturesScreen(courseId: courseId);
+  }
+}
+
+@immutable
+class VideoPlayerScreenRoute extends GoRouteData {
+  const VideoPlayerScreenRoute({
+    required this.courseId,
+    required this.lectureKey,
+  });
+
+  final int courseId;
+  final String lectureKey;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return VideoPlayerScreen(lectureKey: lectureKey);
   }
 }
 

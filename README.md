@@ -1,5 +1,5 @@
-# mit_ocw
-
+# MIT OpenCourseWare
+.
 A mobile companion for MIT OpenCourseWare
 
 ## Getting Started

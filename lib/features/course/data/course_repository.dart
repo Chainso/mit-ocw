@@ -22,6 +22,7 @@ class CourseRepository {
   late final Map<dynamic, dynamic> courseFilter = elastic.Query.bool(
     must: [
       elastic.Query.term("object_type.keyword", ["course"]),
+      elastic.Query.term("coursenum", ["14.01"]),
       ocwFilter
     ],
   );
@@ -83,6 +84,8 @@ class CourseRepository {
     if (response.statusCode == 200) {
       final courseSearch = DocSearch<Course>.fromJson(response.data, Course.fromJsonModel);
       List<Hit> hits = courseSearch.hits.hits;
+      print("Course hits");
+      print(hits);
       return hits.firstOrNull?.source;
     } else {
       throw Exception('Failed to load course $coursenum');
@@ -114,7 +117,11 @@ class CourseRepository {
       print(response.data);
       final lectureSearch = DocSearch<Lecture>.fromJson(response.data, Lecture.fromJsonModel);
       final lectures = lectureSearch.hits.hits.map((hit) => hit.source).toList();
-      print("Converted Lectures");
+      
+      // Sort the lectures using the custom comparison function
+      lectures.sort(compareLectures);
+      
+      print("Sorted Lectures");
       print(lectures);
       return lectures;
     } else {
@@ -634,4 +641,33 @@ class CourseRepository {
       }
     }
   };
+}
+
+int compareLectures(Lecture a, Lecture b) {
+  // Step 1: Extract lecture numbers
+  final numA = extractLectureNumber(a.title);
+  final numB = extractLectureNumber(b.title);
+  if (numA != null && numB != null) {
+    return numA.compareTo(numB);
+  }
+
+  // Step 2: Fall back to alphabetical sorting
+  return a.title.compareTo(b.title);
+}
+
+int? extractLectureNumber(String title) {
+  final patterns = [
+    RegExp(r'^Lecture (\d+)', caseSensitive: false),
+    RegExp(r'^(\d+)\.\s', caseSensitive: false),
+    RegExp(r'Lec[.\s-]*(\d+)', caseSensitive: false),
+  ];
+
+  for (final pattern in patterns) {
+    final match = pattern.firstMatch(title);
+    if (match != null) {
+      return int.tryParse(match.group(1)!);
+    }
+  }
+
+  return null;
 }

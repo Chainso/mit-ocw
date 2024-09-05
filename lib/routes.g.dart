@@ -25,6 +25,10 @@ RouteBase get $homeScreenRoute => GoRouteData.$route(
               path: 'course/:courseId/lectures',
               factory: $CourseLecturesScreenRouteExtension._fromState,
             ),
+            GoRouteData.$route(
+              path: 'course/:courseId/lecture/:lectureKey',
+              factory: $VideoPlayerScreenRouteExtension._fromState,
+            ),
           ],
         ),
       ],
@@ -79,6 +83,27 @@ extension $CourseLecturesScreenRouteExtension on CourseLecturesScreenRoute {
 
   String get location => GoRouteData.$location(
         '/course/${Uri.encodeComponent(courseId.toString())}/lectures',
+      );
+
+  void go(BuildContext context) => context.go(location);
+
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  void replace(BuildContext context) => context.replace(location);
+}
+
+extension $VideoPlayerScreenRouteExtension on VideoPlayerScreenRoute {
+  static VideoPlayerScreenRoute _fromState(GoRouterState state) =>
+      VideoPlayerScreenRoute(
+        courseId: int.parse(state.pathParameters['courseId']!),
+        lectureKey: state.pathParameters['lectureKey']!,
+      );
+
+  String get location => GoRouteData.$location(
+        '/course/${Uri.encodeComponent(courseId.toString())}/lecture/${Uri.encodeComponent(lectureKey)}',
       );
 
   void go(BuildContext context) => context.go(location);
