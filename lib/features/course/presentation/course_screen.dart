@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mit_ocw/bloc/course_bloc/course_bloc.dart';
+import 'package:mit_ocw/features/course/presentation/course_detail_screen.dart';
+import 'package:mit_ocw/features/course/presentation/course_lecture_list.dart';
 
 class CourseScreen extends StatefulWidget {
   const CourseScreen({super.key, required this.courseId});
@@ -6,39 +10,59 @@ class CourseScreen extends StatefulWidget {
   final int courseId;
 
   @override
-  _CourseScreenState createState() => _CourseScreenState();
+  State<CourseScreen> createState() => _CourseScreenState();
 }
 
 class _CourseScreenState extends State<CourseScreen> {
-  int _navIndex = 0;
+  int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      drawer: Drawer(
-        child: ListView(
-          children: const [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue,
+    return BlocBuilder<CourseBloc, CourseListState>(
+      builder: (context, state) {
+        if (state is CourseListLoadedState) {
+          final courseRun = state.courses[widget.courseId];
+          if (courseRun != null) {
+            return Scaffold(
+              appBar: AppBar(
+                title: Text(courseRun.course.title),
+                backgroundColor: Colors.red.shade900,
               ),
-              child: Text(
-                'Drawer Header',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                ),
+              body: Row(
+                children: [
+                  NavigationRail(
+                    selectedIndex: _selectedIndex,
+                    onDestinationSelected: (int index) {
+                      setState(() {
+                        _selectedIndex = index;
+                      });
+                    },
+                    labelType: NavigationRailLabelType.all,
+                    destinations: const [
+                      NavigationRailDestination(
+                        icon: Icon(Icons.home),
+                        label: Text('Home'),
+                      ),
+                      NavigationRailDestination(
+                        icon: Icon(Icons.video_library),
+                        label: Text('Lectures'),
+                      ),
+                    ],
+                  ),
+                  Expanded(
+                    child: _selectedIndex == 0
+                        ? CourseDetailScreen(courseId: widget.courseId)
+                        : CourseLecturesScreen(courseId: widget.courseId),
+                  ),
+                ],
               ),
-            ),
-            ListTile(
-              title: Text('Item 1'),
-            ),
-            ListTile(
-              title: Text('Item 2'),
-            ),
-          ],
-        ),
-      ),
+            );
+          }
+        }
+        return const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        );
+      },
     );
   }
 }

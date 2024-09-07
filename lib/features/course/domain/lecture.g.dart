@@ -110,6 +110,7 @@ const _$CourseFeatureTagEnumMap = {
   CourseFeatureTag.MEDIA_ASSIGNMENTS: 'Media Assignments',
   CourseFeatureTag.MEDIA_ASSIGNMENTS_WITH_EXAMPLES:
       'Media Assignments with Examples',
+  CourseFeatureTag.MULTIPLE_ASSIGNMENT_TYPES: 'Multiple Assignment Types',
   CourseFeatureTag.MUSIC: 'Music',
   CourseFeatureTag.ONLINE_TEXTBOOK: 'Online Textbook',
   CourseFeatureTag.OTHER_AUDIO: 'Other Audio',

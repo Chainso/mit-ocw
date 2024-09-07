@@ -1,92 +1,78 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:mit_ocw/config/ocw_config.dart';
-import 'package:mit_ocw/features/course/domain/course.dart';
 import 'package:mit_ocw/features/course/domain/lecture.dart';
-import 'package:mit_ocw/routes.dart';
 
-class LectureTile extends StatefulWidget {
+class LectureTile extends StatelessWidget {
   const LectureTile({
     super.key,
-    required this.courseRun,
     required this.lecture,
     required this.onTap,
   });
 
-  final FullCourseRun courseRun;
   final Lecture lecture;
   final VoidCallback onTap;
 
   @override
-  State<LectureTile> createState() => _LectureTileState();
-}
-
-class _LectureTileState extends State<LectureTile> {
-  @override
   Widget build(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: widget.onTap,
+    return GestureDetector(
+      onTap: onTap,
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         child: Column(
-          children: <Widget>[
-            Image.network(widget.lecture.imageSrc!),
-            ListTile(
-              title: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: lecture.imageSrc != null
+                  ? ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                      child: Image.network(
+                        lecture.imageSrc ?? "https://placehold.co/600x400",
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[800],
+                            child: const Icon(Icons.error, color: Colors.white),
+                          );
+                        },
+                      ),
+                    )
+                  : Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey[800],
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                      ),
+                      child: const Center(
+                        child: Icon(Icons.play_circle_outline, color: Colors.white, size: 48),
+                      ),
+                    ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    flex: 3,
-                    child: Column(
-                      children: [
-                        Text(
-                          widget.lecture.title,
-                          textAlign: TextAlign.left,
-                          softWrap: true,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          widget.courseRun.run.instructors.join(", "),
-                          textAlign: TextAlign.left,
-                          softWrap: true,
-                          style: const TextStyle(fontWeight: FontWeight.bold)
-                        ),
-                      ],
+                  Text(
+                    lecture.title,
+                    style: Theme.of(context).textTheme.titleMedium,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (lecture.shortDescription != null)
+                    MarkdownBody(
+                      data: lecture.shortDescription!,
+                      styleSheet: MarkdownStyleSheet(
+                        p: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      softLineBreak: true,
+                      shrinkWrap: true,
                     ),
-                  ),
-                  const Expanded(
-                    flex: 1,
-                    child: Column(),
-                  ),
-                  Expanded(
-                    flex: 3,
-                    child: Column(
-                      children: [
-                        Text(
-                          "${widget.courseRun.course.coursenum} | ${widget.courseRun.run.level?[0].name.characters.first.toUpperCase()}",
-                          textAlign: TextAlign.left,
-                          softWrap: true,
-                          style: const TextStyle(
-                            color: Color.fromRGBO(163, 31, 52, 1),
-                            fontWeight: FontWeight.bold
-                          ),
-                        ),
-                        Text(
-                          widget.courseRun.course.departmentName.join(", "),
-                          textAlign: TextAlign.left,
-                          softWrap: true,
-                          style: const TextStyle(fontWeight: FontWeight.bold)
-                        ),
-                      ],
-                    ),
-                  ),
                 ],
               ),
-              subtitle: widget.lecture.shortDescription != null ? MarkdownBody(data: widget.lecture.shortDescription!) : null,
-            )
-          ]
+            ),
+          ],
         ),
       ),
     );

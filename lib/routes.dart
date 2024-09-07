@@ -1,7 +1,7 @@
 // GoRouter configuration
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mit_ocw/features/course/presentation/course_home.dart';
+import 'package:mit_ocw/features/course/presentation/course_screen.dart';
 import 'package:mit_ocw/features/course/presentation/course_lecture_list.dart';
 import 'package:mit_ocw/home.dart';
 import 'package:mit_ocw/features/course/presentation/video_player_screen.dart';
@@ -70,39 +70,7 @@ class CourseScreenRoute extends ShellRouteData {
   @override
   Widget builder(BuildContext context, GoRouterState state, Widget navigator) {
     final courseId = int.parse(state.pathParameters['courseId']!);
-
-    print("CourseScreenRoute builder");
-    return Scaffold(
-      drawer: Drawer(
-        child: ListView(
-          children: [
-            ListTile(
-              title: const Text("Home"),
-              onTap: () {
-                Navigator.pop(context);
-                CourseHomeRoute(courseId: courseId).go(context);
-              },
-            ),
-            ListTile(
-              title: const Text("Lectures"),
-              onTap: () {
-                Navigator.pop(context);
-                CourseLecturesScreenRoute(courseId: courseId).go(context);
-              },
-            ),
-          ],
-        ),
-      ),
-      body: navigator,
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-      ),
-    );
+    return CourseScreen(courseId: courseId);
   }
 }
 
@@ -114,7 +82,7 @@ class CourseHomeRoute extends GoRouteData {
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return CourseHomeScreen(courseId: courseId);
+    return CourseScreen(courseId: courseId);
   }
 }
 

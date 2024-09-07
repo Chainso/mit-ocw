@@ -223,7 +223,7 @@ Course _$CourseFromJson(Map<String, dynamic> json) => Course(
       departmentName: (json['department_name'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
-      departmentSlug: json['department_slug'] as String,
+      departmentSlug: json['department_slug'] as String?,
       courseFeatureTags: (json['course_feature_tags'] as List<dynamic>)
           .map((e) => $enumDecode(_$CourseFeatureTagEnumMap, e))
           .toList(),
@@ -301,6 +301,7 @@ const _$CourseFeatureTagEnumMap = {
   CourseFeatureTag.MEDIA_ASSIGNMENTS: 'Media Assignments',
   CourseFeatureTag.MEDIA_ASSIGNMENTS_WITH_EXAMPLES:
       'Media Assignments with Examples',
+  CourseFeatureTag.MULTIPLE_ASSIGNMENT_TYPES: 'Multiple Assignment Types',
   CourseFeatureTag.MUSIC: 'Music',
   CourseFeatureTag.ONLINE_TEXTBOOK: 'Online Textbook',
   CourseFeatureTag.OTHER_AUDIO: 'Other Audio',
@@ -435,7 +436,7 @@ const _$SemesterEnumMap = {
 const _$LevelElementEnumMap = {
   LevelElement.GRADUATE: 'Graduate',
   LevelElement.HIGH_SCHOOL: 'High School',
-  LevelElement.NON_CREDIT: 'Non Credit',
+  LevelElement.NON_CREDIT: 'Non-Credit',
   LevelElement.UNDERGRADUATE: 'Undergraduate',
 };
 

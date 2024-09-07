@@ -1,88 +1,74 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:mit_ocw/config/ocw_config.dart';
 import 'package:mit_ocw/features/course/domain/course.dart';
-import 'package:mit_ocw/routes.dart';
+import 'package:go_router/go_router.dart';
 
-class CourseTile extends StatefulWidget {
+class CourseTile extends StatelessWidget {
   const CourseTile({super.key, required this.courseRun});
 
   final FullCourseRun courseRun;
 
   @override
-  State<CourseTile> createState() => _CourseTileState();
-}
-
-class _CourseTileState extends State<CourseTile> {
-  @override
   Widget build(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: GestureDetector(
-        onTap: () {
-          CourseHomeRoute(courseId: widget.courseRun.course.id).go(context);
-        },
-        child: Column(
-          children: <Widget>[
-            Image.network(ocwUrl + widget.courseRun.course.imageSrc),
-            ListTile(
-              title: Row(
-                children: [
-                  Expanded(
-                    flex: 3,
+    const placeholder = 'https://placehold.co/600x400?text=No+Image';
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth > 200;
+        return GestureDetector(
+          onTap: () {
+            context.go('/course/${courseRun.course.id}/home');
+          },
+          child: Card(
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                  child: Image.network(
+                    courseRun.course.imageSrc != null && courseRun.course.imageSrc!.isNotEmpty
+                        ? ocwUrl + courseRun.course.imageSrc!
+                        : placeholder,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: isWide ? constraints.maxHeight * 0.6 : constraints.maxHeight * 0.5,
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.courseRun.course.title,
-                          textAlign: TextAlign.left,
-                          softWrap: true,
-                          style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                          courseRun.course.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: isWide ? 16 : 14,
                           ),
                         ),
+                        const Spacer(),
                         Text(
-                            widget.courseRun.run.instructors.join(", "),
-                            textAlign: TextAlign.left,
-                            softWrap: true,
-                            style: const TextStyle(fontWeight: FontWeight.bold)
+                          courseRun.course.coursenum,
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: isWide ? 14 : 12,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  const Expanded(
-                    flex: 1,
-                    child: Column(),
-                  ),
-                  Expanded(
-                    flex: 3,
-                    child: Column(
-                      children: [
-                        Text(
-                          "${widget.courseRun.course.coursenum} | ${widget.courseRun.run.level?[0].name.characters.first.toUpperCase()}",
-                          textAlign: TextAlign.left,
-                          softWrap: true,
-                          style: const TextStyle(
-                            color: Color.fromRGBO(163, 31, 52, 1),
-                            fontWeight: FontWeight.bold
-                          ),
-                        ),
-                        Text(
-                            widget.courseRun.course.departmentName.join(", "),
-                            textAlign: TextAlign.left,
-                            softWrap: true,
-                            style: const TextStyle(fontWeight: FontWeight.bold)
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              subtitle: MarkdownBody(data: widget.courseRun.course.shortDescription),
-            )
-          ]
-        ),
-      ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

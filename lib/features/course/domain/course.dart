@@ -263,7 +263,7 @@ class Course {
     @JsonKey(name: "department_name")
     List<String> departmentName;
     @JsonKey(name: "department_slug")
-    String departmentSlug;
+    String? departmentSlug;
     @JsonKey(name: "course_feature_tags")
     List<CourseFeatureTag> courseFeatureTags;
     @JsonKey(name: "department_course_numbers")
@@ -349,6 +349,8 @@ enum CourseFeatureTag {
     MEDIA_ASSIGNMENTS,
     @JsonValue("Media Assignments with Examples")
     MEDIA_ASSIGNMENTS_WITH_EXAMPLES,
+    @JsonValue("Multiple Assignment Types")
+    MULTIPLE_ASSIGNMENT_TYPES,
     @JsonValue("Music")
     MUSIC,
     @JsonValue("Online Textbook")
@@ -547,7 +549,7 @@ enum LevelElement {
     GRADUATE,
     @JsonValue("High School")
     HIGH_SCHOOL,
-    @JsonValue("Non Credit")
+    @JsonValue("Non-Credit")
     NON_CREDIT,
     @JsonValue("Undergraduate")
     UNDERGRADUATE

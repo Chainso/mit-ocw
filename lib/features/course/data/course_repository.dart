@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:elastic_client/elastic_client.dart' as elastic;
 import 'package:mit_ocw/config/ocw_config.dart';
 import 'package:mit_ocw/features/course/domain/course.dart';
@@ -22,7 +20,7 @@ class CourseRepository {
   late final Map<dynamic, dynamic> courseFilter = elastic.Query.bool(
     must: [
       elastic.Query.term("object_type.keyword", ["course"]),
-      elastic.Query.term("coursenum", ["14.01"]),
+      elastic.Query.term("course_feature_tags", [CourseFeatureTag.LECTURE_VIDEOS.toJson()]),
       ocwFilter
     ],
   );
@@ -42,8 +40,8 @@ class CourseRepository {
   );
 
   Future<List<FullCourseRun>> getCourses() async {
+    print("Getting courses");
     print(_searchUrl);
-    print(allCoursesQuery);
     print(allCoursesQuery.toJson());
 
     final response = await dio.post(
@@ -52,22 +50,28 @@ class CourseRepository {
     );
 
     if (response.statusCode == 200) {
+      try {
       final courseSearch = DocSearch<Course>.fromJson(response.data, Course.fromJsonModel);
       final List<Course> courses = courseSearch.hits.hits.map((hit) => hit.source).toList();
 
-      final coursesWithRuns = courses.where((course) => course.runs.isNotEmpty).toList();
-      final List<FullCourseRun> fullCourseRuns = coursesWithRuns.map((course) => FullCourseRun.fromCourse(course)).toList();
+        final coursesWithRuns = courses.where((course) => course.runs.isNotEmpty).toList();
+        final List<FullCourseRun> fullCourseRuns = coursesWithRuns.map((course) => FullCourseRun.fromCourse(course)).toList();
 
-      return fullCourseRuns;
+        return fullCourseRuns;
+      } catch (e) {
+        print("Failed to parse courses");
+        print(e);
+        rethrow;
+      }
     } else {
-      throw Exception('Failed to load courses');
+      throw Exception("Failed to query courses");
     }
   }
 
   Future<Course?> getCourse(String coursenum) async {
     ElasticSearchQuery courseQuery = ElasticSearchQuery(
       from: 0,
-      size: 100,
+      size: 10,
       query: elastic.Query.bool(
         must: [
           courseFilter,
@@ -641,6 +645,16 @@ class CourseRepository {
       }
     }
   };
+
+  // Add this method to the CourseRepository class
+
+  Future<String> getLectureVideoUrl(String lectureKey) async {
+    // Implement the logic to fetch the video URL based on the lectureKey
+    // This might involve making an API call or querying your database
+    // For now, we'll return a placeholder URL
+    await Future.delayed(Duration(seconds: 1)); // Simulating network delay
+    return 'https://example.com/videos/$lectureKey.mp4';
+  }
 }
 
 int compareLectures(Lecture a, Lecture b) {
