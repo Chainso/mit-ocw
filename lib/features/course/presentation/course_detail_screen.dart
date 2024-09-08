@@ -122,19 +122,15 @@ class CourseDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFeatureChip(CourseFeatureTag feature) {
+  Widget _buildFeatureChip(String feature) {
     return Chip(
       label: Text(
-        _formatFeatureTag(feature.toJson()),
+        feature,
         style: const TextStyle(color: Colors.white),
       ),
       backgroundColor: Colors.blue.shade700,
       elevation: 2,
     );
-  }
-
-  String _formatFeatureTag(String tag) {
-    return tag.split('_').map((word) => word.capitalize()).join(' ');
   }
 }
 

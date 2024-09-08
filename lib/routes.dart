@@ -1,88 +1,158 @@
 // GoRouter configuration
+
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mit_ocw/features/course/presentation/course_screen.dart';
+import 'package:mit_ocw/features/course/presentation/course_detail_screen.dart';
 import 'package:mit_ocw/features/course/presentation/course_lecture_list.dart';
-import 'package:mit_ocw/home.dart';
+import 'package:mit_ocw/features/course/presentation/home/home.dart';
 import 'package:mit_ocw/features/course/presentation/video_player_screen.dart';
+import 'package:mit_ocw/features/course/presentation/search_screen.dart';
 
 part "routes.g.dart";
 
-final _sectionNavigatorKey = GlobalKey<NavigatorState>();
-
-StatefulShellRoute rootRoute() {
-  return StatefulShellRoute.indexedStack(
-    builder: (context, state, navigationShell) {
-      return Scaffold(
-        appBar: AppBar(
-          // TRY THIS: Try changing the color here to a specific color (to
-          // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-          // change color while the other colors stay the same.
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          // Here we take the value from the MyHomePage object that was created by
-          // the App.build method, and use it to set our appbar title.
-          // title: const Text("stateful route title"),
-        ),
-        body: navigationShell,
-      );
-    },
-    branches: [
-      StatefulShellBranch(
-        navigatorKey: _sectionNavigatorKey,
-        routes: $appRoutes,
-      ),
-    ],
-  );
-}
-
-@TypedGoRoute<HomeScreenRoute>(
-  path: '/',
-  routes: [
-    TypedShellRoute<CourseScreenRoute>(
+@TypedStatefulShellRoute<RootRoute>(
+  branches: [
+    TypedStatefulShellBranch<HomeScreenBranch>(
       routes: [
-        TypedGoRoute<CourseHomeRoute>(
-          path: "course/:courseId/home",
+        TypedGoRoute<HomeScreenRoute>(
+          path: "/home",
         ),
-        TypedGoRoute<CourseLecturesScreenRoute>(
-          path: "course/:courseId/lectures",
-        ),
-        // Add this new route
-        TypedGoRoute<VideoPlayerScreenRoute>(
-          path: "course/:courseId/lecture/:lectureKey",
-        ),
+        TypedGoRoute<SearchScreenRoute>(
+          path: "/search",
+        )
+      ]
+    ),
+    TypedStatefulShellBranch<CourseScreenBranch>(
+      routes: [
+        TypedStatefulShellRoute<CourseScreenRoute>(
+          branches: [
+            TypedStatefulShellBranch<StatefulShellBranchData>(
+              routes: [
+                TypedGoRoute<HomeRedirectRoute>(
+                  path: "/",
+                ),
+                TypedGoRoute<CourseScreenHomeRedirectRoute>(
+                  path: "/courses/:courseId",
+                  routes: [
+                    TypedGoRoute<CourseHomeScreenRoute>(
+                      path: "home",
+                    ),
+                    TypedGoRoute<CourseLecturesScreenRoute>(
+                      path: "lectures",
+                      routes: [
+                        TypedGoRoute<VideoPlayerScreenRoute>(
+                          path: ":lectureKey",
+                        ),
+                      ]
+                    )
+                  ]
+                )
+              ]
+            )
+          ]
+        )
       ],
     ),
-  ],
+  ]
 )
 
 @immutable
-class HomeScreenRoute extends GoRouteData {
+class RootRoute extends StatefulShellRouteData {
+  const RootRoute();
+  
   @override
-  Widget build(BuildContext context, GoRouterState state) {
-    return const HomeScreen(title: "Cool title here");
+  Widget builder(BuildContext context, GoRouterState state, StatefulNavigationShell navigationShell) {
+    return Scaffold(
+      body: navigationShell,
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: navigationShell.currentIndex,
+        onTap: (index) => navigationShell.goBranch(index),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.video_library), label: "My Library"),
+        ],
+      ),
+    );
   }
 }
 
 @immutable
-class CourseScreenRoute extends ShellRouteData {
+class HomeScreenBranch extends StatefulShellBranchData {
+  const HomeScreenBranch();
+}
+
+@immutable
+class HomeScreenRoute extends GoRouteData {
+  const HomeScreenRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return const HomeScreen();
+  }
+}
+
+@immutable
+class HomeRedirectRoute extends GoRouteData {
+  const HomeRedirectRoute();
+
+  @override
+  FutureOr<String?> redirect(BuildContext context, GoRouterState state) {
+    return const HomeScreenRoute().location;
+  }
+}
+
+@immutable
+class CourseScreenBranch extends StatefulShellBranchData {
+  const CourseScreenBranch();
+}
+
+@immutable
+class CourseScreenRoute extends StatefulShellRouteData {
   const CourseScreenRoute();
 
   @override
-  Widget builder(BuildContext context, GoRouterState state, Widget navigator) {
-    final courseId = int.parse(state.pathParameters['courseId']!);
-    return CourseScreen(courseId: courseId);
+  Widget builder(BuildContext context, GoRouterState state, StatefulNavigationShell navigationShell) {
+    return Scaffold(
+      body: navigationShell,
+      drawer: NavigationDrawer(
+        selectedIndex: navigationShell.currentIndex,
+        onDestinationSelected: (index) => navigationShell.goBranch(index),
+        children: const [
+          ListTile(
+            title: Text("Course Home")
+          ),
+          ListTile(
+            title: Text("Lectures")
+          ),
+        ],
+      ),
+    );
   }
 }
 
 @immutable
-class CourseHomeRoute extends GoRouteData {
+class CourseScreenHomeRedirectRoute extends GoRouteData {
   final int courseId;
 
-  const CourseHomeRoute({required this.courseId});
+  const CourseScreenHomeRedirectRoute({required this.courseId});
+
+  @override
+  FutureOr<String?> redirect(BuildContext context, GoRouterState state) {
+    return CourseHomeScreenRoute(courseId: courseId).location;
+  }
+}
+
+@immutable
+class CourseHomeScreenRoute extends GoRouteData {
+  const CourseHomeScreenRoute({required this.courseId});
+
+  final int courseId;
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return CourseScreen(courseId: courseId);
+    return CourseDetailScreen(courseId: courseId);
   }
 }
 
@@ -111,6 +181,18 @@ class VideoPlayerScreenRoute extends GoRouteData {
   @override
   Widget build(BuildContext context, GoRouterState state) {
     return VideoPlayerScreen(lectureKey: lectureKey);
+  }
+}
+
+@immutable
+class SearchScreenRoute extends GoRouteData {
+  final String? q;
+
+  const SearchScreenRoute({this.q});
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return SearchScreen(initialQuery: q);
   }
 }
 

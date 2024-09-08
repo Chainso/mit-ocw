@@ -225,7 +225,7 @@ Course _$CourseFromJson(Map<String, dynamic> json) => Course(
           .toList(),
       departmentSlug: json['department_slug'] as String?,
       courseFeatureTags: (json['course_feature_tags'] as List<dynamic>)
-          .map((e) => $enumDecode(_$CourseFeatureTagEnumMap, e))
+          .map((e) => e as String)
           .toList(),
       departmentCourseNumbers: (json['department_course_numbers']
               as List<dynamic>)
@@ -259,9 +259,7 @@ Map<String, dynamic> _$CourseToJson(Course instance) => <String, dynamic>{
       'certification': instance.certification,
       'department_name': instance.departmentName,
       'department_slug': instance.departmentSlug,
-      'course_feature_tags': instance.courseFeatureTags
-          .map((e) => _$CourseFeatureTagEnumMap[e]!)
-          .toList(),
+      'course_feature_tags': instance.courseFeatureTags,
       'department_course_numbers': instance.departmentCourseNumbers,
       'object_type': _$ObjectTypeEnumMap[instance.objectType]!,
       'resource_relations': instance.resourceRelations,
@@ -277,57 +275,6 @@ const _$OfferedByEnumMap = {
 
 const _$AudienceElementEnumMap = {
   AudienceElement.OPEN_CONTENT: 'Open Content',
-};
-
-const _$CourseFeatureTagEnumMap = {
-  CourseFeatureTag.ACTIVITY_ASSIGNMENTS: 'Activity Assignments',
-  CourseFeatureTag.ACTIVITY_ASSIGNMENTS_WITH_EXAMPLES:
-      'Activity Assignments with Examples',
-  CourseFeatureTag.COURSE_INTRODUCTION: 'Course Introduction',
-  CourseFeatureTag.DEMONSTRATION_AUDIO: 'Demonstration Audio',
-  CourseFeatureTag.DEMONSTRATION_VIDEOS: 'Demonstration Videos',
-  CourseFeatureTag.DESIGN_ASSIGNMENTS: 'Design Assignments',
-  CourseFeatureTag.DESIGN_ASSIGNMENTS_WITH_EXAMPLES:
-      'Design Assignments with Examples',
-  CourseFeatureTag.EXAMS: 'Exams',
-  CourseFeatureTag.EXAMS_WITH_SOLUTIONS: 'Exams with Solutions',
-  CourseFeatureTag.EXAM_MATERIALS: 'Exam Materials',
-  CourseFeatureTag.IMAGE_GALLERY: 'Image Gallery',
-  CourseFeatureTag.INSTRUCTOR_INSIGHTS: 'Instructor Insights',
-  CourseFeatureTag.LABS: 'Labs',
-  CourseFeatureTag.LECTURE_AUDIO: 'Lecture Audio',
-  CourseFeatureTag.LECTURE_NOTES: 'Lecture Notes',
-  CourseFeatureTag.LECTURE_VIDEOS: 'Lecture Videos',
-  CourseFeatureTag.MEDIA_ASSIGNMENTS: 'Media Assignments',
-  CourseFeatureTag.MEDIA_ASSIGNMENTS_WITH_EXAMPLES:
-      'Media Assignments with Examples',
-  CourseFeatureTag.MULTIPLE_ASSIGNMENT_TYPES: 'Multiple Assignment Types',
-  CourseFeatureTag.MUSIC: 'Music',
-  CourseFeatureTag.ONLINE_TEXTBOOK: 'Online Textbook',
-  CourseFeatureTag.OTHER_AUDIO: 'Other Audio',
-  CourseFeatureTag.OTHER_VIDEO: 'Other Video',
-  CourseFeatureTag.PRESENTATION_ASSIGNMENTS: 'Presentation Assignments',
-  CourseFeatureTag.PRESENTATION_ASSIGNMENTS_WITH_EXAMPLES:
-      'Presentation Assignments with Examples',
-  CourseFeatureTag.PROBLEM_SETS: 'Problem Sets',
-  CourseFeatureTag.PROBLEM_SETS_WITH_SOLUTIONS: 'Problem Sets with Solutions',
-  CourseFeatureTag.PROGRAMMING_ASSIGNMENTS: 'Programming Assignments',
-  CourseFeatureTag.PROGRAMMING_ASSIGNMENTS_WITH_EXAMPLES:
-      'Programming Assignments with Examples',
-  CourseFeatureTag.PROJECTS: 'Projects',
-  CourseFeatureTag.PROJECTS_WITH_EXAMPLES: 'Projects with Examples',
-  CourseFeatureTag.READINGS: 'Readings',
-  CourseFeatureTag.RECITATION_VIDEOS: 'Recitation Videos',
-  CourseFeatureTag.SIMULATIONS: 'Simulations',
-  CourseFeatureTag.SIMULATION_VIDEOS: 'Simulation Videos',
-  CourseFeatureTag.TOOLS: 'Tools',
-  CourseFeatureTag.TUTORIAL_VIDEOS: 'Tutorial Videos',
-  CourseFeatureTag.VIDEOS: 'Videos',
-  CourseFeatureTag.VIDEO_MATERIALS: 'Video Materials',
-  CourseFeatureTag.WORKSHOP_VIDEOS: 'Workshop Videos',
-  CourseFeatureTag.WRITTEN_ASSIGNMENTS: 'Written Assignments',
-  CourseFeatureTag.WRITTEN_ASSIGNMENTS_WITH_EXAMPLES:
-      'Written Assignments with Examples',
 };
 
 const _$ObjectTypeEnumMap = {

@@ -265,7 +265,7 @@ class Course {
     @JsonKey(name: "department_slug")
     String? departmentSlug;
     @JsonKey(name: "course_feature_tags")
-    List<CourseFeatureTag> courseFeatureTags;
+    List<String> courseFeatureTags;
     @JsonKey(name: "department_course_numbers")
     List<DepartmentCourseNumber> departmentCourseNumbers;
     @JsonKey(name: "object_type")
@@ -309,98 +309,6 @@ class Course {
 enum AudienceElement {
     @JsonValue("Open Content")
     OPEN_CONTENT
-}
-
-@JsonEnum()
-enum CourseFeatureTag {
-    @JsonValue("Activity Assignments")
-    ACTIVITY_ASSIGNMENTS,
-    @JsonValue("Activity Assignments with Examples")
-    ACTIVITY_ASSIGNMENTS_WITH_EXAMPLES,
-    @JsonValue("Course Introduction")
-    COURSE_INTRODUCTION,
-    @JsonValue("Demonstration Audio")
-    DEMONSTRATION_AUDIO,
-    @JsonValue("Demonstration Videos")
-    DEMONSTRATION_VIDEOS,
-    @JsonValue("Design Assignments")
-    DESIGN_ASSIGNMENTS,
-    @JsonValue("Design Assignments with Examples")
-    DESIGN_ASSIGNMENTS_WITH_EXAMPLES,
-    @JsonValue("Exams")
-    EXAMS,
-    @JsonValue("Exams with Solutions")
-    EXAMS_WITH_SOLUTIONS,
-    @JsonValue("Exam Materials")
-    EXAM_MATERIALS,
-    @JsonValue("Image Gallery")
-    IMAGE_GALLERY,
-    @JsonValue("Instructor Insights")
-    INSTRUCTOR_INSIGHTS,
-    @JsonValue("Labs")
-    LABS,
-    @JsonValue("Lecture Audio")
-    LECTURE_AUDIO,
-    @JsonValue("Lecture Notes")
-    LECTURE_NOTES,
-    @JsonValue("Lecture Videos")
-    LECTURE_VIDEOS,
-    @JsonValue("Media Assignments")
-    MEDIA_ASSIGNMENTS,
-    @JsonValue("Media Assignments with Examples")
-    MEDIA_ASSIGNMENTS_WITH_EXAMPLES,
-    @JsonValue("Multiple Assignment Types")
-    MULTIPLE_ASSIGNMENT_TYPES,
-    @JsonValue("Music")
-    MUSIC,
-    @JsonValue("Online Textbook")
-    ONLINE_TEXTBOOK,
-    @JsonValue("Other Audio")
-    OTHER_AUDIO,
-    @JsonValue("Other Video")
-    OTHER_VIDEO,
-    @JsonValue("Presentation Assignments")
-    PRESENTATION_ASSIGNMENTS,
-    @JsonValue("Presentation Assignments with Examples")
-    PRESENTATION_ASSIGNMENTS_WITH_EXAMPLES,
-    @JsonValue("Problem Sets")
-    PROBLEM_SETS,
-    @JsonValue("Problem Sets with Solutions")
-    PROBLEM_SETS_WITH_SOLUTIONS,
-    @JsonValue("Programming Assignments")
-    PROGRAMMING_ASSIGNMENTS,
-    @JsonValue("Programming Assignments with Examples")
-    PROGRAMMING_ASSIGNMENTS_WITH_EXAMPLES,
-    @JsonValue("Projects")
-    PROJECTS,
-    @JsonValue("Projects with Examples")
-    PROJECTS_WITH_EXAMPLES,
-    @JsonValue("Readings")
-    READINGS,
-    @JsonValue("Recitation Videos")
-    RECITATION_VIDEOS,
-    @JsonValue("Simulations")
-    SIMULATIONS,
-    @JsonValue("Simulation Videos")
-    SIMULATION_VIDEOS,
-    @JsonValue("Tools")
-    TOOLS,
-    @JsonValue("Tutorial Videos")
-    TUTORIAL_VIDEOS,
-    @JsonValue("Videos")
-    VIDEOS,
-    @JsonValue("Video Materials")
-    VIDEO_MATERIALS,
-    @JsonValue("Workshop Videos")
-    WORKSHOP_VIDEOS,
-    @JsonValue("Written Assignments")
-    WRITTEN_ASSIGNMENTS,
-    @JsonValue("Written Assignments with Examples")
-    WRITTEN_ASSIGNMENTS_WITH_EXAMPLES
-}
-
-extension CourseFeatureTagExtension on CourseFeatureTag {
-  String toJson() => _$CourseFeatureTagEnumMap[this]!;
 }
 
 @JsonSerializable()

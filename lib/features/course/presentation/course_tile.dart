@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mit_ocw/config/ocw_config.dart';
 import 'package:mit_ocw/features/course/domain/course.dart';
-import 'package:go_router/go_router.dart';
+import 'package:mit_ocw/routes.dart';
 
 class CourseTile extends StatelessWidget {
   const CourseTile({super.key, required this.courseRun});
@@ -10,13 +10,12 @@ class CourseTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const placeholder = 'https://placehold.co/600x400?text=No+Image';
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth > 200;
         return GestureDetector(
           onTap: () {
-            context.go('/course/${courseRun.course.id}/home');
+            CourseHomeScreenRoute(courseId: courseRun.course.id).go(context);
           },
           child: Card(
             elevation: 4,
@@ -29,9 +28,7 @@ class CourseTile extends StatelessWidget {
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                   child: Image.network(
-                    courseRun.course.imageSrc != null && courseRun.course.imageSrc!.isNotEmpty
-                        ? ocwUrl + courseRun.course.imageSrc!
-                        : placeholder,
+                    ocwUrl + courseRun.course.imageSrc,
                     fit: BoxFit.cover,
                     width: double.infinity,
                     height: isWide ? constraints.maxHeight * 0.6 : constraints.maxHeight * 0.5,

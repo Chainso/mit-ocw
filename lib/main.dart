@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mit_ocw/bloc/course_bloc/course_bloc.dart';
 import 'package:mit_ocw/features/course/data/course_repository.dart';
@@ -8,9 +7,11 @@ import 'package:mit_ocw/routes.dart';
 import 'package:flutter/services.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
+
 final _router = GoRouter(
   navigatorKey: _rootNavigatorKey,
-  routes: [rootRoute()],
+  routes: $appRoutes,
+  initialLocation: "/home",
 );
 
 Future<void> main() async {

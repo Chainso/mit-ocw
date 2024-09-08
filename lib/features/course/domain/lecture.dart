@@ -56,7 +56,7 @@ class Lecture {
     @JsonKey(name: "image_src")
     String? imageSrc;
     @JsonKey(name: "resource_type")
-    List<CourseFeatureTag> resourceType;
+    List<String> resourceType;
     @JsonKey(name: "object_type")
     ObjectType objectType;
 
@@ -134,7 +134,7 @@ class LectureFile {
     @JsonKey(name: "file")
     dynamic file;
     @JsonKey(name: "learning_resource_types")
-    List<CourseFeatureTag> learningResourceTypes;
+    List<String> learningResourceTypes;
     @JsonKey(name: "resource_type")
     String resourceType;
     @JsonKey(name: "file_type")

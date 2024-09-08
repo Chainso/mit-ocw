@@ -22,6 +22,7 @@ class _CourseScreenState extends State<CourseScreen> {
       builder: (context, state) {
         if (state is CourseListLoadedState) {
           final courseRun = state.courses[widget.courseId];
+          
           if (courseRun != null) {
             return Scaffold(
               appBar: AppBar(
