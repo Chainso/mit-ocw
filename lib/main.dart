@@ -11,7 +11,6 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _router = GoRouter(
   navigatorKey: _rootNavigatorKey,
   routes: $appRoutes,
-  initialLocation: "/home",
 );
 
 Future<void> main() async {

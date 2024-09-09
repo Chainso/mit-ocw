@@ -7,44 +7,45 @@ part of 'routes.dart';
 // **************************************************************************
 
 List<RouteBase> get $appRoutes => [
-      $rootRoute,
+      $mainShellRoute,
     ];
 
-RouteBase get $rootRoute => StatefulShellRouteData.$route(
-      factory: $RootRouteExtension._fromState,
+RouteBase get $mainShellRoute => StatefulShellRouteData.$route(
+      factory: $MainShellRouteExtension._fromState,
       branches: [
         StatefulShellBranchData.$branch(
           routes: [
             GoRouteData.$route(
+              path: '/',
+              factory: $HomeRedirectRouteExtension._fromState,
+            ),
+            GoRouteData.$route(
               path: '/home',
+              name: 'home',
               factory: $HomeScreenRouteExtension._fromState,
             ),
             GoRouteData.$route(
               path: '/search',
+              name: 'search',
               factory: $SearchScreenRouteExtension._fromState,
             ),
-          ],
-        ),
-        StatefulShellBranchData.$branch(
-          routes: [
-            StatefulShellRouteData.$route(
-              factory: $CourseScreenRouteExtension._fromState,
-              branches: [
-                StatefulShellBranchData.$branch(
-                  routes: [
-                    GoRouteData.$route(
-                      path: '/',
-                      factory: $HomeRedirectRouteExtension._fromState,
-                    ),
-                    GoRouteData.$route(
-                      path: '/courses/:courseId',
-                      factory:
-                          $CourseScreenHomeRedirectRouteExtension._fromState,
+            GoRouteData.$route(
+              path: '/courses/:courseId',
+              factory: $CourseHomeScreenRedirectRouteExtension._fromState,
+              routes: [
+                StatefulShellRouteData.$route(
+                  factory: $CourseScreenRouteExtension._fromState,
+                  branches: [
+                    StatefulShellBranchData.$branch(
                       routes: [
                         GoRouteData.$route(
                           path: 'home',
                           factory: $CourseHomeScreenRouteExtension._fromState,
                         ),
+                      ],
+                    ),
+                    StatefulShellBranchData.$branch(
+                      routes: [
                         GoRouteData.$route(
                           path: 'lectures',
                           factory:
@@ -65,11 +66,39 @@ RouteBase get $rootRoute => StatefulShellRouteData.$route(
             ),
           ],
         ),
+        StatefulShellBranchData.$branch(
+          routes: [
+            GoRouteData.$route(
+              path: '/my-library',
+              name: 'my-library',
+              factory: $MyLibraryScreenRouteExtension._fromState,
+            ),
+          ],
+        ),
       ],
     );
 
-extension $RootRouteExtension on RootRoute {
-  static RootRoute _fromState(GoRouterState state) => const RootRoute();
+extension $MainShellRouteExtension on MainShellRoute {
+  static MainShellRoute _fromState(GoRouterState state) =>
+      const MainShellRoute();
+}
+
+extension $HomeRedirectRouteExtension on HomeRedirectRoute {
+  static HomeRedirectRoute _fromState(GoRouterState state) =>
+      const HomeRedirectRoute();
+
+  String get location => GoRouteData.$location(
+        '/',
+      );
+
+  void go(BuildContext context) => context.go(location);
+
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  void replace(BuildContext context) => context.replace(location);
 }
 
 extension $HomeScreenRouteExtension on HomeScreenRoute {
@@ -112,33 +141,10 @@ extension $SearchScreenRouteExtension on SearchScreenRoute {
   void replace(BuildContext context) => context.replace(location);
 }
 
-extension $CourseScreenRouteExtension on CourseScreenRoute {
-  static CourseScreenRoute _fromState(GoRouterState state) =>
-      const CourseScreenRoute();
-}
-
-extension $HomeRedirectRouteExtension on HomeRedirectRoute {
-  static HomeRedirectRoute _fromState(GoRouterState state) =>
-      const HomeRedirectRoute();
-
-  String get location => GoRouteData.$location(
-        '/',
-      );
-
-  void go(BuildContext context) => context.go(location);
-
-  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
-
-  void pushReplacement(BuildContext context) =>
-      context.pushReplacement(location);
-
-  void replace(BuildContext context) => context.replace(location);
-}
-
-extension $CourseScreenHomeRedirectRouteExtension
-    on CourseScreenHomeRedirectRoute {
-  static CourseScreenHomeRedirectRoute _fromState(GoRouterState state) =>
-      CourseScreenHomeRedirectRoute(
+extension $CourseHomeScreenRedirectRouteExtension
+    on CourseHomeScreenRedirectRoute {
+  static CourseHomeScreenRedirectRoute _fromState(GoRouterState state) =>
+      CourseHomeScreenRedirectRoute(
         courseId: int.parse(state.pathParameters['courseId']!),
       );
 
@@ -154,6 +160,11 @@ extension $CourseScreenHomeRedirectRouteExtension
       context.pushReplacement(location);
 
   void replace(BuildContext context) => context.replace(location);
+}
+
+extension $CourseScreenRouteExtension on CourseScreenRoute {
+  static CourseScreenRoute _fromState(GoRouterState state) =>
+      const CourseScreenRoute();
 }
 
 extension $CourseHomeScreenRouteExtension on CourseHomeScreenRoute {
@@ -205,6 +216,24 @@ extension $VideoPlayerScreenRouteExtension on VideoPlayerScreenRoute {
 
   String get location => GoRouteData.$location(
         '/courses/${Uri.encodeComponent(courseId.toString())}/lectures/${Uri.encodeComponent(lectureKey)}',
+      );
+
+  void go(BuildContext context) => context.go(location);
+
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  void replace(BuildContext context) => context.replace(location);
+}
+
+extension $MyLibraryScreenRouteExtension on MyLibraryScreenRoute {
+  static MyLibraryScreenRoute _fromState(GoRouterState state) =>
+      const MyLibraryScreenRoute();
+
+  String get location => GoRouteData.$location(
+        '/my-library',
       );
 
   void go(BuildContext context) => context.go(location);

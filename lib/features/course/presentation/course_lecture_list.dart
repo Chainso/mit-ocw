@@ -6,6 +6,7 @@ import 'package:mit_ocw/config/ocw_config.dart';
 import 'package:mit_ocw/features/course/data/course_repository.dart';
 import 'package:mit_ocw/features/course/presentation/course_lecture_tile.dart';
 import 'package:mit_ocw/features/course/presentation/video_player_screen.dart';
+import 'package:mit_ocw/routes.dart';
 
 class CourseLecturesScreen extends StatelessWidget {
   final int courseId;
@@ -81,12 +82,10 @@ class CourseLecturesScreen extends StatelessWidget {
                                   return LectureTile(
                                     lecture: state.lectures[index],
                                     onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => VideoPlayerScreen(lectureKey: state.lectures[index].key),
-                                        ),
-                                      );
+                                      VideoPlayerScreenRoute(
+                                        courseId: courseId,
+                                        lectureKey: state.lectures[index].key
+                                      ).go(context);
                                     },
                                   );
                                 },
