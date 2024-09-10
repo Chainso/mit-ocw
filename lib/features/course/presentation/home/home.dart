@@ -57,15 +57,18 @@ class HomeScreen extends StatelessWidget {
     final Map<String, List<FullCourseRun>> categorized = {};
     
     for (var courseRun in courses) {
-      // Use the first department name if available, otherwise use a default category
-      String department = courseRun.course.departmentName.isNotEmpty 
-          ? courseRun.course.departmentName.first 
-          : 'Uncategorized';
-      
-      if (!categorized.containsKey(department)) {
-        categorized[department] = [];
+      List<String> departments = courseRun.course.departmentName;
+
+      if (departments.isEmpty) {
+        departments = ['Uncategorized'];
       }
-      categorized[department]!.add(courseRun);
+
+      for (var department in courseRun.course.departmentName) {
+        if (!categorized.containsKey(department)) {
+          categorized[department] = [];
+        }
+        categorized[department]!.add(courseRun);
+      }
     }
 
     // Sort departments alphabetically
