@@ -13,7 +13,7 @@ class CategorySection extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth > 600;
-        final itemHeight = isWide ? 300.0 : 167.0; // Reduced mobile height
+        final itemHeight = isWide ? 300.0 : 160.0; // Reduced mobile height
         final itemWidth = isWide ? 250.0 : 133.0; // Reduced mobile width
 
         return Column(

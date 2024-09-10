@@ -11,7 +11,7 @@ Lecture _$LectureFromJson(Map<String, dynamic> json) => Lecture(
       runTitle: json['run_title'] as String,
       runSlug: json['run_slug'] as String,
       runDepartmentSlug: json['run_department_slug'] as String,
-      semester: $enumDecode(_$SemesterEnumMap, json['semester']),
+      semester: $enumDecodeNullable(_$SemesterEnumMap, json['semester']),
       year: (json['year'] as num).toInt(),
       topics:
           (json['topics'] as List<dynamic>).map((e) => e as String).toList(),
@@ -45,7 +45,7 @@ Map<String, dynamic> _$LectureToJson(Lecture instance) => <String, dynamic>{
       'run_title': instance.runTitle,
       'run_slug': instance.runSlug,
       'run_department_slug': instance.runDepartmentSlug,
-      'semester': _$SemesterEnumMap[instance.semester]!,
+      'semester': instance.semester,
       'year': instance.year,
       'topics': instance.topics,
       'key': instance.key,

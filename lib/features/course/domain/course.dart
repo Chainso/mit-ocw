@@ -493,7 +493,9 @@ enum Semester {
     @JsonValue("Spring")
     SPRING,
     @JsonValue("Summer")
-    SUMMER
+    SUMMER;
+
+    String toJson() => _$SemesterEnumMap[this]!;
 }
 
 enum Type {

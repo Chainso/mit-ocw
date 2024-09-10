@@ -133,7 +133,7 @@ class CourseRepository {
     }
   }
 
-  Future<List<Course>> searchCourses(String searchText) async {
+  Future<List<FullCourseRun>> searchCourses(String searchText) async {
     Map<String, dynamic> courseQuery = searchCourseQuery(searchText);
 
     print("Searching for $searchText");
@@ -148,7 +148,7 @@ class CourseRepository {
       print("Got search response");
       print(response.data);
       final courseSearch = DocSearch<Course>.fromJson(response.data, Course.fromJsonModel);
-      return courseSearch.hits.hits.map((hit) => hit.source).toList();
+      return courseSearch.hits.hits.map((hit) => FullCourseRun.fromCourse(hit.source)).toList();
     } else {
       throw Exception('Failed to load course using search string $searchText');
     }
@@ -788,16 +788,6 @@ class CourseRepository {
       }
     }
   };
-
-  // Add this method to the CourseRepository class
-
-  Future<String> getLectureVideoUrl(String lectureKey) async {
-    // Implement the logic to fetch the video URL based on the lectureKey
-    // This might involve making an API call or querying your database
-    // For now, we'll return a placeholder URL
-    await Future.delayed(Duration(seconds: 1)); // Simulating network delay
-    return 'https://example.com/videos/$lectureKey.mp4';
-  }
 }
 
 int compareLectures(Lecture a, Lecture b) {

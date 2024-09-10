@@ -14,7 +14,7 @@ class Lecture {
     @JsonKey(name: "run_department_slug")
     String runDepartmentSlug;
     @JsonKey(name: "semester")
-    Semester semester;
+    Semester? semester;
     @JsonKey(name: "year")
     int year;
     @JsonKey(name: "topics")

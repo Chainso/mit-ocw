@@ -1,20 +1,24 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:dio/dio.dart';
 import 'package:html/parser.dart' as parser;
 import 'package:mit_ocw/config/ocw_config.dart';
+import 'package:mit_ocw/features/course/presentation/course_header.dart';
+import 'package:mit_ocw/bloc/course_bloc/course_bloc.dart';
 
-class VideoPlayerScreen extends StatefulWidget {
+class CourseLectureScreen extends StatefulWidget {
+  final int courseId;
   final String lectureKey;
 
-  const VideoPlayerScreen({Key? key, required this.lectureKey}) : super(key: key);
+  const CourseLectureScreen({super.key, required this.courseId, required this.lectureKey});
 
   @override
-  _VideoPlayerScreenState createState() => _VideoPlayerScreenState();
+  _CourseLectureScreenState createState() => _CourseLectureScreenState();
 }
 
-class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
+class _CourseLectureScreenState extends State<CourseLectureScreen> {
   YoutubePlayerController? _youtubePlayerController;
   final Dio _dio = Dio();
   String? _errorMessage;
@@ -79,21 +83,38 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Play Video"),
-      ),
-      body: Center(
-        child: _youtubePlayerController != null
-            ? YoutubePlayer(
-                controller: _youtubePlayerController!,
-                showVideoProgressIndicator: true,
-                progressIndicatorColor: Colors.blueAccent,
-              )
-            : _errorMessage != null
-                ? Text(_errorMessage!)
-                : const CircularProgressIndicator(),
-      ),
+    return BlocBuilder<CourseBloc, CourseListState>(
+      builder: (context, state) {
+        if (state is CourseListLoadedState) {
+          final courseRun = state.courses[widget.courseId];
+          if (courseRun != null) {
+            return Scaffold(
+              backgroundColor: Colors.black,
+              body: Column(
+                children: [
+                  CourseHeader(courseTitle: courseRun.course.title),
+                  Expanded(
+                    child: Center(
+                      child: _youtubePlayerController != null
+                          ? YoutubePlayer(
+                              controller: _youtubePlayerController!,
+                              showVideoProgressIndicator: true,
+                              progressIndicatorColor: Colors.blueAccent,
+                            )
+                          : _errorMessage != null
+                              ? Text(_errorMessage!, style: const TextStyle(color: Colors.white))
+                              : const CircularProgressIndicator(),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+        }
+        return const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        );
+      },
     );
   }
 }

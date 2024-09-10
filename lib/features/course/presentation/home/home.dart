@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mit_ocw/bloc/course_bloc/course_bloc.dart';
 import 'package:mit_ocw/features/course/presentation/category_section.dart';
 import 'package:mit_ocw/features/course/domain/course.dart';
-import 'package:go_router/go_router.dart';
-import 'dart:async';
-
-import 'package:mit_ocw/routes.dart';
+import 'package:mit_ocw/features/course/presentation/home_header.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -15,44 +11,10 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212), // Very dark gray background
+      backgroundColor: const Color(0xFF121212),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                SvgPicture.asset(
-                  'assets/images/mit-ocw-logo.svg',
-                  height: 40,
-                  color: Colors.white,
-                ),
-                const SizedBox(height: 16),
-                GestureDetector(
-                  onTap: () => SearchScreenRoute().go(context),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[800],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.search, color: Colors.grey[400]),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Search courses...',
-                            style: TextStyle(color: Colors.grey[400]),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          const HomeHeader(),
           Expanded(
             child: BlocBuilder<CourseBloc, CourseListState>(
               builder: (context, state) {

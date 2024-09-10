@@ -59,7 +59,25 @@ class MyApp extends StatelessWidget {
               bodyMedium: TextStyle(color: Colors.white70),
             ),
           ),
+          builder: (context, child) {
+            return SafeAreaWrapper(child: child!);
+          },
         ),
+      ),
+    );
+  }
+}
+
+class SafeAreaWrapper extends StatelessWidget {
+  final Widget child;
+
+  const SafeAreaWrapper({Key? key, required this.child}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: child,
       ),
     );
   }

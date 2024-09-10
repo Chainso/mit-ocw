@@ -42,21 +42,13 @@ class CourseTile extends StatelessWidget {
                       children: [
                         Text(
                           courseRun.course.title,
-                          maxLines: 2,
+                          maxLines: 3,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: isWide ? 16 : 14,
+                            fontSize: isWide ? 16 : 11,
                           ),
-                        ),
-                        const Spacer(),
-                        Text(
-                          courseRun.course.coursenum,
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: isWide ? 14 : 12,
-                          ),
-                        ),
+                        )
                       ],
                     ),
                   ),

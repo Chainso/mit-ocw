@@ -54,7 +54,7 @@ RouteBase get $mainShellRoute => StatefulShellRouteData.$route(
                             GoRouteData.$route(
                               path: ':lectureKey',
                               factory:
-                                  $VideoPlayerScreenRouteExtension._fromState,
+                                  $CourseLectureScreenRouteExtension._fromState,
                             ),
                           ],
                         ),
@@ -207,9 +207,9 @@ extension $CourseLecturesScreenRouteExtension on CourseLecturesScreenRoute {
   void replace(BuildContext context) => context.replace(location);
 }
 
-extension $VideoPlayerScreenRouteExtension on VideoPlayerScreenRoute {
-  static VideoPlayerScreenRoute _fromState(GoRouterState state) =>
-      VideoPlayerScreenRoute(
+extension $CourseLectureScreenRouteExtension on CourseLectureScreenRoute {
+  static CourseLectureScreenRoute _fromState(GoRouterState state) =>
+      CourseLectureScreenRoute(
         courseId: int.parse(state.pathParameters['courseId']!),
         lectureKey: state.pathParameters['lectureKey']!,
       );

@@ -353,7 +353,7 @@ Map<String, dynamic> _$RunToJson(Run instance) => <String, dynamic>{
       'short_description': instance.shortDescription,
       'full_description': instance.fullDescription,
       'language': instance.language,
-      'semester': _$SemesterEnumMap[instance.semester]!,
+      'semester': instance.semester,
       'year': instance.year,
       'level': instance.level?.map((e) => _$LevelElementEnumMap[e]!).toList(),
       'start_date': instance.startDate,

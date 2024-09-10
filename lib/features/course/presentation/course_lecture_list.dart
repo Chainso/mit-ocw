@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mit_ocw/bloc/course_bloc/course_bloc.dart';
 import 'package:mit_ocw/bloc/lecture_bloc/lecture_bloc.dart';
-import 'package:mit_ocw/config/ocw_config.dart';
 import 'package:mit_ocw/features/course/data/course_repository.dart';
-import 'package:mit_ocw/features/course/presentation/course_lecture_tile.dart';
-import 'package:mit_ocw/features/course/presentation/video_player_screen.dart';
+import 'package:mit_ocw/features/course/domain/lecture.dart';
+import 'package:mit_ocw/features/course/presentation/course_header.dart';
 import 'package:mit_ocw/routes.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class CourseLecturesScreen extends StatelessWidget {
   final int courseId;
@@ -32,66 +32,12 @@ class CourseLecturesScreen extends StatelessWidget {
                     return Center(child: Text(state.error, style: const TextStyle(color: Colors.white)));
                   } else if (state is LectureListLoadedState) {
                     return Scaffold(
-                      body: CustomScrollView(
-                        slivers: [
-                          SliverAppBar(
-                            expandedHeight: 200.0,
-                            pinned: true,
-                            flexibleSpace: Stack(
-                              children: [
-                                Positioned.fill(
-                                  child: Image.network(
-                                    "$ocwUrl${courseRun.course.imageSrc}",
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                                Positioned(
-                                  left: 16,
-                                  right: 16,
-                                  bottom: 16,
-                                  child: Text(
-                                    courseRun.course.title,
-                                    style: const TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                      shadows: [
-                                        Shadow(
-                                          blurRadius: 10.0,
-                                          color: Colors.black,
-                                          offset: Offset(2.0, 2.0),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SliverPadding(
-                            padding: const EdgeInsets.all(16.0),
-                            sliver: SliverGrid(
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                childAspectRatio: 16 / 9,
-                                crossAxisSpacing: 16,
-                                mainAxisSpacing: 16,
-                              ),
-                              delegate: SliverChildBuilderDelegate(
-                                (context, index) {
-                                  return LectureTile(
-                                    lecture: state.lectures[index],
-                                    onTap: () {
-                                      VideoPlayerScreenRoute(
-                                        courseId: courseId,
-                                        lectureKey: state.lectures[index].key
-                                      ).go(context);
-                                    },
-                                  );
-                                },
-                                childCount: state.lectures.length,
-                              ),
-                            ),
+                      backgroundColor: Colors.black,
+                      body: Column(
+                        children: [
+                          CourseHeader(courseTitle: courseRun.course.title),
+                          Expanded(
+                            child: _buildLectureList(state.lectures),
                           ),
                         ],
                       ),
@@ -104,6 +50,51 @@ class CourseLecturesScreen extends StatelessWidget {
           }
         }
         return const Center(child: CircularProgressIndicator());
+      },
+    );
+  }
+
+  Widget _buildLectureList(List<Lecture> lectures) {
+    return ScrollablePositionedList.builder(
+      itemCount: lectures.length,
+      itemBuilder: (context, index) {
+        final lecture = lectures[index];
+        return InkWell(
+          onTap: () {
+            CourseLectureScreenRoute(
+              courseId: courseId,
+              lectureKey: lecture.key,
+            ).go(context);
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    lecture.imageSrc ?? 'https://via.placeholder.com/120x68',
+                    width: 120,
+                    height: 68,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    lecture.title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
       },
     );
   }

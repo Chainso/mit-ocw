@@ -3,12 +3,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mit_ocw/features/course/presentation/course_detail_screen.dart';
 import 'package:mit_ocw/features/course/presentation/course_lecture_list.dart';
 import 'package:mit_ocw/features/course/presentation/home/home.dart';
-import 'package:mit_ocw/features/course/presentation/video_player_screen.dart';
 import 'package:mit_ocw/features/course/presentation/search_screen.dart';
+import 'package:mit_ocw/features/course/presentation/my_library_screen.dart';
+import 'package:mit_ocw/features/course/presentation/course_lecture_screen.dart';
 
 part "routes.g.dart";
 
@@ -44,7 +46,7 @@ part "routes.g.dart";
                     TypedGoRoute<CourseLecturesScreenRoute>(
                       path: "lectures",
                       routes: [
-                        TypedGoRoute<VideoPlayerScreenRoute>(
+                        TypedGoRoute<CourseLectureScreenRoute>(
                           path: ":lectureKey",
                         ),
                       ]
@@ -137,11 +139,6 @@ class CourseHomeScreenRedirectRoute extends GoRouteData {
 
   @override
   FutureOr<String?> redirect(BuildContext context, GoRouterState state) {
-    print("CourseHomeScreenRedirectRoute: Redirecting to /courses/$courseId/home");
-    print("CourseHomeScreenRedirectRoute: courseId = $courseId");
-    print("CourseHomeScreenRedirectRoute: fullPath = ${state.fullPath}");
-    print("CourseHomeScreenRedirectRoute: pathParameters = ${state.pathParameters}");
-
     if (state.fullPath == location) {
       return CourseHomeScreenRoute(courseId: courseId).location;
     }
@@ -156,15 +153,17 @@ class CourseScreenRoute extends StatefulShellRouteData {
 
   @override
   Widget builder(BuildContext context, GoRouterState state, StatefulNavigationShell navigationShell) {
-    print("CourseScreenRoute: currentIndex = ${navigationShell.currentIndex}");
-    print("CourseScreenRoute: currentLocation = ${state.fullPath}");
-    print("CourseScreenRoute: pathParameters = ${state.pathParameters}");
-
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
       ),
       body: navigationShell,
       drawer: NavigationDrawer(
@@ -234,10 +233,10 @@ class CourseLecturesScreenRoute extends GoRouteData {
 }
 
 @immutable
-class VideoPlayerScreenRoute extends GoRouteData {
-  const VideoPlayerScreenRoute({
+class CourseLectureScreenRoute extends GoRouteData {
+  const CourseLectureScreenRoute({
     required this.courseId,
-    required this.lectureKey,
+    required this.lectureKey
   });
 
   final int courseId;
@@ -245,7 +244,10 @@ class VideoPlayerScreenRoute extends GoRouteData {
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return VideoPlayerScreen(lectureKey: lectureKey);
+    return CourseLectureScreen(
+      courseId: courseId,
+      lectureKey: lectureKey
+    );
   }
 }
 
@@ -260,6 +262,6 @@ class MyLibraryScreenRoute extends GoRouteData {
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return const Text("My Library");
+    return const MyLibraryScreen();
   }
 }
