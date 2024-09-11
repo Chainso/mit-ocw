@@ -57,6 +57,7 @@ class MyApp extends StatelessWidget {
             textTheme: const TextTheme(
               headlineSmall: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               bodyMedium: TextStyle(color: Colors.white70),
+              titleLarge: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
             ),
           ),
           builder: (context, child) {

@@ -3,123 +3,115 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:mit_ocw/bloc/course_bloc/course_bloc.dart';
 import 'package:mit_ocw/config/ocw_config.dart';
+import 'package:mit_ocw/features/course/presentation/course_header.dart';
 import 'package:mit_ocw/routes.dart';
 
-class CourseDetailScreen extends StatelessWidget {
+class CourseDetailScreen extends StatefulWidget {
   const CourseDetailScreen({super.key, required this.courseId});
 
   final int courseId;
+
+  @override
+  State<CourseDetailScreen> createState() => _CourseDetailScreenState();
+}
+
+class _CourseDetailScreenState extends State<CourseDetailScreen> {
+  late ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<CourseBloc, CourseListState>(
       builder: (context, state) {
         if (state is CourseListLoadedState) {
-          final courseRun = state.courses[courseId];
+          final courseRun = state.courses[widget.courseId];
           if (courseRun != null) {
             return Scaffold(
               body: CustomScrollView(
+                controller: _scrollController,
                 slivers: [
+                  PinnedHeaderSliver(
+                    child: CourseHeader(courseTitle: courseRun.course.title),
+                  ),
                   SliverAppBar(
                     expandedHeight: 240.0,
-                    floating: false,
+                    collapsedHeight: 0.0,
+                    toolbarHeight: 0.0,
+                    floating: true,
                     pinned: true,
-                    flexibleSpace: LayoutBuilder(
-                      builder: (BuildContext context, BoxConstraints constraints) {
-                        final top = constraints.biggest.height;
-                        final appBarHeight = MediaQuery.of(context).padding.top + kToolbarHeight;
-                        final collapsedFraction = (appBarHeight - top) / (240.0 - appBarHeight);
-                        final isCollapsed = collapsedFraction > 0;
-
-                        return FlexibleSpaceBar(
-                          title: isCollapsed
-                              ? Text(
-                                  courseRun.course.title,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                )
-                              : null,
-                          background: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              Image.network(
-                                ocwUrl + courseRun.course.imageSrc,
-                                fit: BoxFit.cover,
-                              ),
-                              Container(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      Colors.transparent,
-                                      Colors.black.withOpacity(0.7),
-                                    ],
-                                    stops: const [0.5, 1.0],
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                left: 16,
-                                right: 16,
-                                bottom: 16,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      courseRun.course.title,
-                                      style: const TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                        shadows: [
-                                          Shadow(
-                                            offset: Offset(1.0, 1.0),
-                                            blurRadius: 3.0,
-                                            color: Color.fromARGB(255, 0, 0, 0),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      "${courseRun.course.coursenum} | ${courseRun.course.created.year}",
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.white.withOpacity(0.8),
-                                        shadows: const [
-                                          Shadow(
-                                            offset: Offset(1.0, 1.0),
-                                            blurRadius: 3.0,
-                                            color: Color.fromARGB(255, 0, 0, 0),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      courseRun.run.instructors.join(", "),
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.white.withOpacity(0.8),
-                                        shadows: const [
-                                          Shadow(
-                                            offset: Offset(1.0, 1.0),
-                                            blurRadius: 3.0,
-                                            color: Color.fromARGB(255, 0, 0, 0),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                    flexibleSpace: FlexibleSpaceBar(
+                      background: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Image.network(
+                            ocwUrl + courseRun.course.imageSrc,
+                            fit: BoxFit.cover,
                           ),
-                        );
-                      },
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black.withOpacity(0.7),
+                                ],
+                                stops: const [0.5, 1.0],
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            left: 16,
+                            right: 16,
+                            bottom: 16,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "${courseRun.course.coursenum} | ${courseRun.course.created.year}",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.white.withOpacity(0.8),
+                                    shadows: const [
+                                      Shadow(
+                                        offset: Offset(1.0, 1.0),
+                                        blurRadius: 3.0,
+                                        color: Color.fromARGB(255, 0, 0, 0),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  courseRun.run.instructors.join(", "),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.white.withOpacity(0.8),
+                                    shadows: const [
+                                      Shadow(
+                                        offset: Offset(1.0, 1.0),
+                                        blurRadius: 3.0,
+                                        color: Color.fromARGB(255, 0, 0, 0),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   SliverToBoxAdapter(
@@ -133,7 +125,7 @@ class CourseDetailScreen extends StatelessWidget {
                               Expanded(
                                 child: ElevatedButton.icon(
                                   onPressed: () {
-                                    CourseLecturesScreenRoute(courseId: courseId).go(context);
+                                    CourseLecturesScreenRoute(courseId: widget.courseId).go(context);
                                   },
                                   icon: const Icon(Icons.play_arrow, color: Colors.black),
                                   label: const Text('Watch Lectures', style: TextStyle(color: Colors.black)),
@@ -211,11 +203,5 @@ class CourseDetailScreen extends StatelessWidget {
       backgroundColor: Colors.blue.shade700,
       elevation: 2,
     );
-  }
-}
-
-extension StringExtension on String {
-  String capitalize() {
-    return "${this[0].toUpperCase()}${this.substring(1).toLowerCase()}";
   }
 }

@@ -30,7 +30,7 @@ class MyLibraryScreen extends StatelessWidget {
               ],
             ),
           ),
-          Expanded(
+          const Expanded(
             child: FocusedCourseList(courses: []),
           ),
         ],
