@@ -40,10 +40,6 @@ class CourseRepository {
   );
 
   Future<List<FullCourseRun>> getCourses() async {
-    print("Getting courses");
-    print(_searchUrl);
-    print(allCoursesQuery.toJson());
-
     final response = await dio.post(
       _searchUrl,
       data: allCoursesQuery.toJson(),

@@ -273,6 +273,6 @@ class MyLibraryScreenRoute extends GoRouteData {
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return const MyLibraryScreen();
+    return MyLibraryScreen(key: UniqueKey());
   }
 }

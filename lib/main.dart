@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mit_ocw/bloc/course_bloc/course_bloc.dart';
 import 'package:mit_ocw/features/course/data/course_repository.dart';
+import 'package:mit_ocw/features/course/data/user_data_repository.dart';
 import 'package:mit_ocw/routes.dart';
 import 'package:flutter/services.dart';
 
@@ -34,6 +35,9 @@ class MyApp extends StatelessWidget {
       providers: [
         RepositoryProvider<CourseRepository>(
           create: (context) => CourseRepository(),
+        ),
+        RepositoryProvider<UserDataRepository>(
+          create: (context) => UserDataRepository(),
         ),
       ],
       child: MultiBlocProvider(

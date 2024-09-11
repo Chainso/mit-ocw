@@ -4,19 +4,21 @@ import 'package:mit_ocw/features/course/domain/course.dart';
 import 'package:mit_ocw/routes.dart';
 
 class CourseTile extends StatelessWidget {
-  const CourseTile({super.key, required this.courseRun});
-
   final FullCourseRun courseRun;
+  final Function(BuildContext, FullCourseRun)? onLongPress;
+
+  const CourseTile({super.key, required this.courseRun, this.onLongPress});
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth > 200;
-        return GestureDetector(
+        return InkWell(
           onTap: () {
             CourseHomeScreenRoute(courseId: courseRun.course.id).go(context);
           },
+          onLongPress: onLongPress != null ? () => onLongPress!(context, courseRun) : null,
           child: Card(
             elevation: 4,
             shape: RoundedRectangleBorder(

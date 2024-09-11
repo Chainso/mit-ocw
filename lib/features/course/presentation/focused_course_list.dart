@@ -4,8 +4,13 @@ import 'package:mit_ocw/features/course/presentation/course_tile.dart';
 
 class FocusedCourseList extends StatelessWidget {
   final List<FullCourseRun> courses;
+  final Function(BuildContext, FullCourseRun)? onLongPress;
 
-  const FocusedCourseList({Key? key, required this.courses}) : super(key: key);
+  const FocusedCourseList({
+    super.key,
+    required this.courses,
+    this.onLongPress
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +23,7 @@ class FocusedCourseList extends StatelessWidget {
         mainAxisSpacing: 16,
       ),
       itemCount: courses.length,
-      itemBuilder: (context, index) => CourseTile(courseRun: courses[index]),
+      itemBuilder: (context, index) => CourseTile(courseRun: courses[index], onLongPress: onLongPress),
     );
   }
 }

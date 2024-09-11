@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:mit_ocw/bloc/course_bloc/course_bloc.dart';
 import 'package:mit_ocw/config/ocw_config.dart';
+import 'package:mit_ocw/features/course/data/user_data_repository.dart';
+import 'package:mit_ocw/features/course/domain/course.dart';
 import 'package:mit_ocw/features/course/presentation/course_header.dart';
 import 'package:mit_ocw/routes.dart';
 
@@ -138,21 +140,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                               const SizedBox(width: 16),
                               Expanded(
                                 child: ElevatedButton.icon(
-                                  onPressed: () {
-                                    // Add to My Library functionality
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('Added ${courseRun.course.title} to My Library'),
-                                        duration: const Duration(seconds: 2),
-                                        action: SnackBarAction(
-                                          label: 'Undo',
-                                          onPressed: () {
-                                            // Implement undo functionality here
-                                          },
-                                        ),
-                                      ),
-                                    );
-                                  },
+                                  onPressed: () => _addToLibrary(context, courseRun),
                                   icon: const Icon(Icons.add, color: Colors.white),
                                   label: const Text('Add to Library', style: TextStyle(color: Colors.white)),
                                   style: ElevatedButton.styleFrom(
@@ -203,5 +191,33 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       backgroundColor: Colors.blue.shade700,
       elevation: 2,
     );
+  }
+
+  void _addToLibrary(BuildContext context, FullCourseRun courseRun) {
+    context.read<UserDataRepository>().addToLibrary(courseRun.course.id).then((added) {
+      if (mounted) {
+        final addedSnackbar = SnackBar(
+          content: Text('Added ${courseRun.course.title} to my library'),
+          duration: const Duration(seconds: 5),
+          action: SnackBarAction(
+            label: 'Undo',
+            onPressed: () {
+              context.read<UserDataRepository>().removeFromLibrary(courseRun.course.id).then((_) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).clearSnackBars();
+                }
+              });
+            },
+          ),
+        );
+
+        final alreadyExistsSnackbar = SnackBar(
+          content: Text('${courseRun.course.title} is already in my library'),
+          duration: const Duration(seconds: 5),
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(added ? addedSnackbar : alreadyExistsSnackbar);
+      }
+    });
   }
 }
