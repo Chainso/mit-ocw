@@ -31,6 +31,7 @@ RouteBase get $mainShellRoute => StatefulShellRouteData.$route(
             ),
             GoRouteData.$route(
               path: '/courses/:courseId',
+              name: 'course-home-redirect',
               factory: $CourseHomeScreenRedirectRouteExtension._fromState,
               routes: [
                 StatefulShellRouteData.$route(

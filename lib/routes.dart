@@ -30,6 +30,7 @@ part "routes.g.dart";
           path: "/search",
         ),
         TypedGoRoute<CourseHomeScreenRedirectRoute>(
+          name: "course-home-redirect",
           path: "/courses/:courseId",
           routes: [
             TypedStatefulShellRoute<CourseScreenRoute>(
@@ -108,6 +109,11 @@ class HomeRedirectRoute extends GoRouteData {
   FutureOr<String?> redirect(BuildContext context, GoRouterState state) {
     return const HomeScreenRoute().location;
   }
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return const HomeScreen();
+  }
 }
 
 @immutable
@@ -139,11 +145,16 @@ class CourseHomeScreenRedirectRoute extends GoRouteData {
 
   @override
   FutureOr<String?> redirect(BuildContext context, GoRouterState state) {
-    if (state.fullPath == location) {
+    if (state.pageKey.value == location) {
       return CourseHomeScreenRoute(courseId: courseId).location;
     }
 
     return null;
+  }
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return CourseDetailScreen(courseId: courseId);
   }
 }
 
