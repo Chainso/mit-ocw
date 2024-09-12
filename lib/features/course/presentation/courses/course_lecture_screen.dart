@@ -5,7 +5,7 @@ import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:dio/dio.dart';
 import 'package:html/parser.dart' as parser;
 import 'package:mit_ocw/config/ocw_config.dart';
-import 'package:mit_ocw/features/course/presentation/course_header.dart';
+import 'package:mit_ocw/features/course/presentation/courses/course_header.dart';
 import 'package:mit_ocw/bloc/course_bloc/course_bloc.dart';
 
 class CourseLectureScreen extends StatefulWidget {

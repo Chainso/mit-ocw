@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mit_ocw/features/course/data/course_repository.dart';
 import 'package:mit_ocw/features/course/domain/course.dart';
-import 'package:mit_ocw/features/course/presentation/focused_course_list.dart';
-import 'package:mit_ocw/features/course/presentation/home_header.dart';
+import 'package:mit_ocw/features/course/presentation/home/focused_course_list.dart';
+import 'package:mit_ocw/features/course/presentation/home/home_header.dart';
 
 class SearchScreen extends StatefulWidget {
   final String? initialQuery;

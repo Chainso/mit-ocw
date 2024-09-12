@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mit_ocw/features/course/domain/course.dart';
-import 'package:mit_ocw/features/course/presentation/course_tile.dart';
+import 'package:mit_ocw/features/course/presentation/home/course_tile.dart';
 
 class CategorySection extends StatelessWidget {
   final String category;

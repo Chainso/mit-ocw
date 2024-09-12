@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mit_ocw/bloc/course_bloc/course_bloc.dart';
-import 'package:mit_ocw/features/course/presentation/category_section.dart';
+import 'package:mit_ocw/features/course/presentation/home/category_section.dart';
 import 'package:mit_ocw/features/course/domain/course.dart';
-import 'package:mit_ocw/features/course/presentation/home_header.dart';
+import 'package:mit_ocw/features/course/presentation/home/home_header.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});

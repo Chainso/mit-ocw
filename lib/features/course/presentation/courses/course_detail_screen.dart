@@ -5,7 +5,7 @@ import 'package:mit_ocw/bloc/course_bloc/course_bloc.dart';
 import 'package:mit_ocw/config/ocw_config.dart';
 import 'package:mit_ocw/features/course/data/user_data_repository.dart';
 import 'package:mit_ocw/features/course/domain/course.dart';
-import 'package:mit_ocw/features/course/presentation/course_header.dart';
+import 'package:mit_ocw/features/course/presentation/courses/course_header.dart';
 import 'package:mit_ocw/routes.dart';
 
 class CourseDetailScreen extends StatefulWidget {

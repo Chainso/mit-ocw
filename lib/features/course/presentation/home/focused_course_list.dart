@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mit_ocw/features/course/domain/course.dart';
-import 'package:mit_ocw/features/course/presentation/course_tile.dart';
+import 'package:mit_ocw/features/course/presentation/home/course_tile.dart';
 
 class FocusedCourseList extends StatelessWidget {
   final List<FullCourseRun> courses;

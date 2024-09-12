@@ -4,7 +4,7 @@ import 'package:mit_ocw/bloc/course_bloc/course_bloc.dart';
 import 'package:mit_ocw/features/course/data/user_data_repository.dart';
 import 'package:mit_ocw/features/course/domain/course.dart';
 import 'package:mit_ocw/features/course/domain/library.dart';
-import 'package:mit_ocw/features/course/presentation/focused_course_list.dart';
+import 'package:mit_ocw/features/course/presentation/home/focused_course_list.dart';
 
 class MyLibraryScreen extends StatefulWidget {
   const MyLibraryScreen({super.key});

@@ -4,7 +4,7 @@ import 'package:mit_ocw/bloc/course_bloc/course_bloc.dart';
 import 'package:mit_ocw/bloc/lecture_bloc/lecture_bloc.dart';
 import 'package:mit_ocw/features/course/data/course_repository.dart';
 import 'package:mit_ocw/features/course/domain/lecture.dart';
-import 'package:mit_ocw/features/course/presentation/course_header.dart';
+import 'package:mit_ocw/features/course/presentation/courses/course_header.dart';
 import 'package:mit_ocw/routes.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 

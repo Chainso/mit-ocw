@@ -5,12 +5,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mit_ocw/features/course/presentation/course_detail_screen.dart';
-import 'package:mit_ocw/features/course/presentation/course_lecture_list.dart';
+import 'package:mit_ocw/features/course/presentation/courses/course_detail_screen.dart';
+import 'package:mit_ocw/features/course/presentation/courses/course_lecture_list.dart';
 import 'package:mit_ocw/features/course/presentation/home/home.dart';
-import 'package:mit_ocw/features/course/presentation/search_screen.dart';
-import 'package:mit_ocw/features/course/presentation/my_library_screen.dart';
-import 'package:mit_ocw/features/course/presentation/course_lecture_screen.dart';
+import 'package:mit_ocw/features/course/presentation/home/search_screen.dart';
+import 'package:mit_ocw/features/course/presentation/library/my_library_screen.dart';
+import 'package:mit_ocw/features/course/presentation/courses/course_lecture_screen.dart';
 
 part "routes.g.dart";
 
