@@ -94,6 +94,7 @@ class CourseAggregations {
     });
 
     factory CourseAggregations.fromJson(Map<String, dynamic> json) => _$CourseAggregationsFromJson(json);
+    factory CourseAggregations.fromJsonModel(Object? json) => CourseAggregations.fromJson(json as Map<String, dynamic>);
 
     Map<String, dynamic> toJson() => _$CourseAggregationsToJson(this);
 }
@@ -137,15 +138,18 @@ class Bucket {
 
 @JsonSerializable()
 class LevelClass {
-    @JsonKey(name: "buckets")
-    List<Bucket> buckets;
+    @JsonKey(name: "doc_count")
+    int docCount;
+
+    @JsonKey(name: "level")
+    AudienceClass level;
 
     LevelClass({
-        required this.buckets,
+        required this.docCount,
+        required this.level
     });
 
     factory LevelClass.fromJson(Map<String, dynamic> json) => _$LevelClassFromJson(json);
-
     Map<String, dynamic> toJson() => _$LevelClassToJson(this);
 }
 

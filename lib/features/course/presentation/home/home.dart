@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mit_ocw/bloc/course_bloc/course_bloc.dart';
+import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
+import 'package:mit_ocw/features/course/data/course_repository.dart';
+import 'package:mit_ocw/features/course/data/pagination.dart';
 import 'package:mit_ocw/features/course/presentation/home/category_section.dart';
 import 'package:mit_ocw/features/course/domain/course.dart';
 import 'package:mit_ocw/features/course/presentation/home/home_header.dart';
+
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -15,67 +18,91 @@ class HomeScreen extends StatelessWidget {
       body: Column(
         children: [
           const HomeHeader(),
-          Expanded(
-            child: BlocBuilder<CourseBloc, CourseListState>(
-              builder: (context, state) {
-                return switch (state) {
-                  CourseListLoadingState() => const Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  CourseListErrorState(error: final error) => Center(
-                      child: Text(error, style: const TextStyle(color: Colors.white, fontSize: 16)),
-                    ),
-                  CourseListLoadedState(courses: final courses) => _buildDepartmentList(courses),
-                  _ => const Center(
-                      child: Text('Unexpected state', style: TextStyle(color: Colors.white, fontSize: 16)),
-                    ),
-                };
-              },
-            ),
+          FutureBuilder(
+            future: _getAggregations(context),
+            builder: (context, snapshot) {
+              print("Future builder");
+              print(snapshot);
+              if (snapshot.hasError) {
+                return HomeScreenCategories(aggregationsQuery: StaticListPaginatedQuery<String>(items: []), error: snapshot.error);
+              } else if (!snapshot.hasData) {
+                return const Expanded(
+                  child: Center(
+                    child: CircularProgressIndicator()
+                  )
+                );
+              } else {
+                final departmentsAgg = snapshot.data!.departmentName.buckets;
+                final departmentNames = departmentsAgg.map((bucket) => bucket.key).toList();
+                departmentNames.sort();
+
+                final departmentQuery = StaticListPaginatedQuery<String>(
+                  items: departmentNames
+                );
+
+                return HomeScreenCategories(aggregationsQuery: departmentQuery);
+              }
+            },
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDepartmentList(Map<int, FullCourseRun> courses) {
-    final departmentCourses = _categorizeCoursesByDepartment(courses.values.toList());
-    
-    return ListView.builder(
-      itemCount: departmentCourses.length,
-      itemBuilder: (context, index) {
-        final entry = departmentCourses.entries.elementAt(index);
-        return CategorySection(
-          category: entry.key,
-          courses: entry.value,
-        );
-      },
-    );
+  Future<CourseAggregations> _getAggregations(BuildContext context) async {
+    return await context.read<CourseRepository>().getAggregations();
+  }
+}
+
+class HomeScreenCategories extends StatefulWidget {
+  final PaginatedQuery<int, String> aggregationsQuery;
+  final Object? error;
+
+  const HomeScreenCategories({super.key, required this.aggregationsQuery, this.error});
+
+  @override
+  State<HomeScreenCategories> createState() => _HomeScreenCategoriesState();
+}
+
+class _HomeScreenCategoriesState extends State<HomeScreenCategories> {
+  static const _pageSize = 4;
+  final PagingController<int, String> _pagingController = PagingController(firstPageKey: 0);
+
+  @override
+  @mustCallSuper
+  void initState() {
+    super.initState();
+
+    widget.aggregationsQuery.addListenerToPagingController(_pagingController, _pageSize);
   }
 
-  Map<String, List<FullCourseRun>> _categorizeCoursesByDepartment(List<FullCourseRun> courses) {
-    final Map<String, List<FullCourseRun>> categorized = {};
-    
-    for (var courseRun in courses) {
-      List<String> departments = courseRun.course.departmentName;
+  @override
+  void dispose() {
+    super.dispose();
+    _pagingController.dispose();
+  }
 
-      if (departments.isEmpty) {
-        departments = ['Uncategorized'];
-      }
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: PagedListView<int, String>(
+        pagingController: _pagingController,
+        builderDelegate: PagedChildBuilderDelegate<String>(
+          itemBuilder: (context, item, index) {
+            CourseRepository courseRepository = context.read<CourseRepository>();
 
-      for (var department in courseRun.course.departmentName) {
-        if (!categorized.containsKey(department)) {
-          categorized[department] = [];
-        }
-        categorized[department]!.add(courseRun);
-      }
-    }
+            final departmentCoursesQuery = PaginatedQuery<int, FullCourseRun>(
+             fetchPage: (from, size) => courseRepository.getCoursesByDepartment(item, from, size)
+            );
 
-    // Sort departments alphabetically
-    final sortedDepartments = categorized.keys.toList()..sort();
-    
-    return Map.fromEntries(
-      sortedDepartments.map((dept) => MapEntry(dept, categorized[dept]!))
+            return CategorySection<int>(
+             category: item,
+             categoryFetcher: departmentCoursesQuery,
+             initialPageKey: 0
+            );
+          }
+        ),
+      ),
     );
   }
 }

@@ -117,14 +117,14 @@ Map<String, dynamic> _$BucketToJson(Bucket instance) => <String, dynamic>{
     };
 
 LevelClass _$LevelClassFromJson(Map<String, dynamic> json) => LevelClass(
-      buckets: (json['buckets'] as List<dynamic>)
-          .map((e) => Bucket.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      docCount: (json['doc_count'] as num).toInt(),
+      level: AudienceClass.fromJson(json['level'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$LevelClassToJson(LevelClass instance) =>
     <String, dynamic>{
-      'buckets': instance.buckets,
+      'doc_count': instance.docCount,
+      'level': instance.level,
     };
 
 Hits<T> _$HitsFromJson<T>(

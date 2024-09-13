@@ -1,5 +1,7 @@
 import 'package:elastic_client/elastic_client.dart' as elastic;
+import 'package:logger/logger.dart';
 import 'package:mit_ocw/config/ocw_config.dart';
+import 'package:mit_ocw/features/course/data/pagination.dart';
 import 'package:mit_ocw/features/course/domain/course.dart';
 
 import 'package:dio/dio.dart';
@@ -7,6 +9,7 @@ import 'package:mit_ocw/features/course/domain/lecture.dart';
 import 'package:mit_ocw/util/elastic_search.dart';
 
 class CourseRepository {
+  final Logger logger = Logger();
   final String _courseUrl = "$ocwApiUrl/courses";
   final String _searchUrl = "$ocwApiUrl/search/";
   final dio = Dio();
@@ -39,6 +42,22 @@ class CourseRepository {
     ],
   );
 
+  Future<CourseAggregations> getAggregations() async {
+    final response = await dio.post(
+      _searchUrl,
+      data: searchRequest,
+    );
+
+    if (response.statusCode == 200) {
+      print("Got aggregations response");
+      print(response.data);
+      final aggregationSearch = AggregationSearch<CourseAggregations>.fromJson(response.data, CourseAggregations.fromJsonModel);
+      return aggregationSearch.aggregations;
+    } else {
+      throw Exception("Failed to query aggregations");
+    }
+  }
+
   Future<List<FullCourseRun>> getCourses() async {
     final response = await dio.post(
       _searchUrl,
@@ -64,10 +83,57 @@ class CourseRepository {
     }
   }
 
-  Future<Course?> getCourse(String coursenum) async {
+  Future<PaginatedResults<int, FullCourseRun>> getCoursesByDepartment(
+    String department,
+    int? from,
+    int? size
+  ) async {
+    final startIndex = from ?? 0;
+
+    ElasticSearchQuery courseQuery = ElasticSearchQuery(
+      from: startIndex,
+      size: size,
+      query: elastic.Query.bool(
+        must: [
+          courseFilter,
+          elastic.Query.term("department_name", [department]),
+        ],
+      ),
+    );
+
+    final response = await dio.post(
+      _searchUrl,
+      data: courseQuery.toJson(),
+    );
+
+    if (response.statusCode == 200) {
+      final courseSearch = DocSearch<Course>.fromJson(response.data, Course.fromJsonModel);
+      List<FullCourseRun> courses = courseSearch.hits.hits.map((hit) => FullCourseRun.fromCourse(hit.source)).toList();
+
+      List<PagedItem<int, FullCourseRun>> pagedItems = List.generate(
+        courses.length,
+        (i) => PagedItem<int, FullCourseRun>(
+          cursor: startIndex + i + 1,
+          item: courses[i]
+        )
+      );
+      
+      print("Got courses for department $department $startIndex $size ${courseSearch.hits.total} ${pagedItems.length}");
+
+      return PaginatedResults<int, FullCourseRun>(
+        items: pagedItems,
+        hasPrevious: startIndex > 0 && courseSearch.hits.total > 0,
+        hasNext: size != null && startIndex + size < courseSearch.hits.total
+      );
+    } else {
+      throw Exception('Failed to load courses for department $department');
+    }
+  }
+
+  Future<FullCourseRun?> getCourse(String coursenum) async {
     ElasticSearchQuery courseQuery = ElasticSearchQuery(
       from: 0,
-      size: 10,
+      size: 1,
       query: elastic.Query.bool(
         must: [
           courseFilter,
@@ -84,9 +150,14 @@ class CourseRepository {
     if (response.statusCode == 200) {
       final courseSearch = DocSearch<Course>.fromJson(response.data, Course.fromJsonModel);
       List<Hit> hits = courseSearch.hits.hits;
-      print("Course hits");
+      print("Single course hit for $coursenum");
       print(hits);
-      return hits.firstOrNull?.source;
+
+      if (hits.isEmpty) {
+        return null;
+      }
+
+      return FullCourseRun.fromCourse(hits.first.source);
     } else {
       throw Exception('Failed to load course $coursenum');
     }
@@ -309,8 +380,8 @@ class CourseRepository {
 
   final Map<String, dynamic> searchRequest = {
     "from": 0,
-    "size": 1000,
-    "post_filter": {
+    "size": 0,
+    "query": {
       "bool": {
         "must": [
           {
@@ -338,448 +409,66 @@ class CourseRepository {
         ]
       }
     },
-    "query": {
-      "bool": {
-        "should": [
-          {
-            "bool": {
-              "filter": {
-                "bool": {
-                  "must": [
-                    {
-                      "term": {
-                        "object_type": "course"
-                      }
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        ]
-      }
-    },
     "aggs": {
-      "agg_filter_audience": {
-        "filter": {
-          "bool": {
-            "should": [
-              {
-                "bool": {
-                  "filter": {
-                    "bool": {
-                      "must": [
-                        {
-                          "bool": {
-                            "should": [
-                              {
-                                "term": {
-                                  "object_type.keyword": "course"
-                                }
-                              }
-                            ]
-                          }
-                        },
-                        {
-                          "bool": {
-                            "should": [
-                              {
-                                "term": {
-                                  "offered_by": "OCW"
-                                }
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
-                  }
-                }
-              }
-            ]
-          }
-        },
-        "aggs": {
-          "audience": {
-            "terms": {
-              "field": "audience",
-              "size": 10000
-            }
-          }
+      "audience": {
+        "terms": {
+          "field": "audience",
+          "size": 10000
         }
       },
-      "agg_filter_certification": {
-        "filter": {
-          "bool": {
-            "should": [
-              {
-                "bool": {
-                  "filter": {
-                    "bool": {
-                      "must": [
-                        {
-                          "bool": {
-                            "should": [
-                              {
-                                "term": {
-                                  "object_type.keyword": "course"
-                                }
-                              }
-                            ]
-                          }
-                        },
-                        {
-                          "bool": {
-                            "should": [
-                              {
-                                "term": {
-                                  "offered_by": "OCW"
-                                }
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
-                  }
-                }
-              }
-            ]
-          }
-        },
-        "aggs": {
-          "certification": {
-            "terms": {
-              "field": "certification",
-              "size": 10000
-            }
-          }
+      "certification": {
+        "terms": {
+          "field": "certification",
+          "size": 10000
         }
       },
-      "agg_filter_type": {
-        "filter": {
-          "bool": {
-            "should": [
-              {
-                "bool": {
-                  "filter": {
-                    "bool": {
-                      "must": [
-                        {
-                          "bool": {
-                            "should": [
-                              {
-                                "term": {
-                                  "offered_by": "OCW"
-                                }
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
-                  }
-                }
-              }
-            ]
-          }
-        },
-        "aggs": {
-          "type": {
-            "terms": {
-              "field": "object_type.keyword",
-              "size": 10000
-            }
-          }
+      "type": {
+        "terms": {
+          "field": "object_type.keyword",
+          "size": 10000
         }
       },
-      "agg_filter_offered_by": {
-        "filter": {
-          "bool": {
-            "should": [
-              {
-                "bool": {
-                  "filter": {
-                    "bool": {
-                      "must": [
-                        {
-                          "bool": {
-                            "should": [
-                              {
-                                "term": {
-                                  "object_type.keyword": "course"
-                                }
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
-                  }
-                }
-              }
-            ]
-          }
-        },
-        "aggs": {
-          "offered_by": {
-            "terms": {
-              "field": "offered_by",
-              "size": 10000
-            }
-          }
+      "offered_by": {
+        "terms": {
+          "field": "offered_by",
+          "size": 10000
         }
       },
-      "agg_filter_topics": {
-        "filter": {
-          "bool": {
-            "should": [
-              {
-                "bool": {
-                  "filter": {
-                    "bool": {
-                      "must": [
-                        {
-                          "bool": {
-                            "should": [
-                              {
-                                "term": {
-                                  "object_type.keyword": "course"
-                                }
-                              }
-                            ]
-                          }
-                        },
-                        {
-                          "bool": {
-                            "should": [
-                              {
-                                "term": {
-                                  "offered_by": "OCW"
-                                }
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
-                  }
-                }
-              }
-            ]
-          }
-        },
-        "aggs": {
-          "topics": {
-            "terms": {
-              "field": "topics",
-              "size": 10000
-            }
-          }
+      "topics": {
+        "terms": {
+          "field": "topics",
+          "size": 10000
         }
       },
-      "agg_filter_department_name": {
-        "filter": {
-          "bool": {
-            "should": [
-              {
-                "bool": {
-                  "filter": {
-                    "bool": {
-                      "must": [
-                        {
-                          "bool": {
-                            "should": [
-                              {
-                                "term": {
-                                  "object_type.keyword": "course"
-                                }
-                              }
-                            ]
-                          }
-                        },
-                        {
-                          "bool": {
-                            "should": [
-                              {
-                                "term": {
-                                  "offered_by": "OCW"
-                                }
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
-                  }
-                }
-              }
-            ]
-          }
-        },
-        "aggs": {
-          "department_name": {
-            "terms": {
-              "field": "department_name",
-              "size": 10000
-            }
-          }
+      "department_name": {
+        "terms": {
+          "field": "department_name",
+          "size": 10000
         }
       },
-      "agg_filter_level": {
-        "filter": {
-          "bool": {
-            "should": [
-              {
-                "bool": {
-                  "filter": {
-                    "bool": {
-                      "must": [
-                        {
-                          "bool": {
-                            "should": [
-                              {
-                                "term": {
-                                  "object_type.keyword": "course"
-                                }
-                              }
-                            ]
-                          }
-                        },
-                        {
-                          "bool": {
-                            "should": [
-                              {
-                                "term": {
-                                  "offered_by": "OCW"
-                                }
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
-                  }
-                }
-              }
-            ]
-          }
+      "level": {
+        "nested": {
+          "path": "runs"
         },
         "aggs": {
           "level": {
-            "nested": {
-              "path": "runs"
-            },
-            "aggs": {
-              "level": {
-                "terms": {
-                  "field": "runs.level",
-                  "size": 10000
-                },
-                "aggs": {
-                  "courses": {
-                    "reverse_nested": {}
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "agg_filter_course_feature_tags": {
-        "filter": {
-          "bool": {
-            "should": [
-              {
-                "bool": {
-                  "filter": {
-                    "bool": {
-                      "must": [
-                        {
-                          "bool": {
-                            "should": [
-                              {
-                                "term": {
-                                  "object_type.keyword": "course"
-                                }
-                              }
-                            ]
-                          }
-                        },
-                        {
-                          "bool": {
-                            "should": [
-                              {
-                                "term": {
-                                  "offered_by": "OCW"
-                                }
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
-                  }
-                }
-              }
-            ]
-          }
-        },
-        "aggs": {
-          "course_feature_tags": {
             "terms": {
-              "field": "course_feature_tags",
+              "field": "runs.level",
               "size": 10000
             }
           }
         }
       },
-      "agg_filter_resource_type": {
-        "filter": {
-          "bool": {
-            "should": [
-              {
-                "bool": {
-                  "filter": {
-                    "bool": {
-                      "must": [
-                        {
-                          "bool": {
-                            "should": [
-                              {
-                                "term": {
-                                  "object_type.keyword": "course"
-                                }
-                              }
-                            ]
-                          }
-                        },
-                        {
-                          "bool": {
-                            "should": [
-                              {
-                                "term": {
-                                  "offered_by": "OCW"
-                                }
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
-                  }
-                }
-              }
-            ]
-          }
-        },
-        "aggs": {
-          "resource_type": {
-            "terms": {
-              "field": "resource_type",
-              "size": 10000
-            }
-          }
+      "course_feature_tags": {
+        "terms": {
+          "field": "course_feature_tags",
+          "size": 10000
+        }
+      },
+      "resource_type": {
+        "terms": {
+          "field": "resource_type",
+          "size": 10000
         }
       }
     }

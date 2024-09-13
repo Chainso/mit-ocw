@@ -1,12 +1,41 @@
 import 'package:flutter/material.dart';
+import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
+import 'package:mit_ocw/features/course/data/pagination.dart';
 import 'package:mit_ocw/features/course/domain/course.dart';
 import 'package:mit_ocw/features/course/presentation/home/course_tile.dart';
 
-class CategorySection extends StatelessWidget {
+class CategorySection<CURSOR> extends StatefulWidget {
   final String category;
-  final List<FullCourseRun> courses;
+  final PaginatedQuery<CURSOR, FullCourseRun> categoryFetcher;
+  final CURSOR initialPageKey;
 
-  const CategorySection({Key? key, required this.category, required this.courses}) : super(key: key);
+  const CategorySection({
+    super.key,
+    required this.category,
+    required this.categoryFetcher,
+    required this.initialPageKey
+  });
+
+  @override
+  State<StatefulWidget> createState() => _CategorySectionState<CURSOR>();
+}
+
+class _CategorySectionState<CURSOR> extends State<CategorySection<CURSOR>> {
+  static const _pageSize = 4;
+  late PagingController<CURSOR, FullCourseRun> _pagingController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pagingController = PagingController(firstPageKey: widget.initialPageKey);
+    widget.categoryFetcher.addListenerToPagingController(_pagingController, _pageSize);
+  }
+
+  @override
+  void dispose() {
+    _pagingController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +51,7 @@ class CategorySection extends StatelessWidget {
             Padding(
               padding: EdgeInsets.fromLTRB(16, isWide ? 32 : 24, 16, 12),
               child: Text(
-                category,
+                widget.category,
                 style: TextStyle(
                   color: Colors.white, // White text for category names
                   fontSize: isWide ? 28 : 24,
@@ -32,19 +61,21 @@ class CategorySection extends StatelessWidget {
             ),
             SizedBox(
               height: itemHeight,
-              child: ListView.builder(
+              child: PagedListView<CURSOR, FullCourseRun>(
+                pagingController: _pagingController,
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: courses.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 16),
-                    child: SizedBox(
-                      width: itemWidth,
-                      child: CourseTile(courseRun: courses[index]),
-                    ),
-                  );
-                },
+                builderDelegate: PagedChildBuilderDelegate<FullCourseRun>(
+                  itemBuilder: (context, item, index) {
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 16),
+                      child: SizedBox(
+                        width: itemWidth,
+                        child: CourseTile(courseRun: item),
+                      ),
+                    );
+                  }
+                )
               ),
             ),
             SizedBox(height: isWide ? 32 : 24),
