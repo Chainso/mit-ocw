@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mit_ocw/bloc/course_bloc/course_bloc.dart';
+import 'package:mit_ocw/features/course/data/course_repository.dart';
 import 'package:mit_ocw/features/course/data/user_data_repository.dart';
 import 'package:mit_ocw/features/course/domain/course.dart';
 import 'package:mit_ocw/features/course/domain/library.dart';
@@ -23,18 +23,13 @@ class _MyLibraryScreenState extends State<MyLibraryScreen> {
     _refreshLibrary();
   }
 
-  @override
-  void didUpdateWidget(covariant MyLibraryScreen oldWidget) {
-    print("Did update widget");
-    super.didUpdateWidget(oldWidget);
-    _refreshLibrary();
-  }
-
   void _refreshLibrary() {
     print("Refreshing library");
+    
     setState(() {
       _libraryFuture = context.read<UserDataRepository>().getLibrary();
     });
+
   }
 
   void _showContextMenu(BuildContext context, FullCourseRun courseRun) {
@@ -61,7 +56,7 @@ class _MyLibraryScreenState extends State<MyLibraryScreen> {
   }
 
   void _removeFromLibrary(FullCourseRun courseRun) {
-    context.read<UserDataRepository>().removeFromLibrary(courseRun.course.id).then((_) {
+    context.read<UserDataRepository>().removeFromLibrary(courseRun.course.coursenum).then((_) {
       if (mounted) {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -70,7 +65,7 @@ class _MyLibraryScreenState extends State<MyLibraryScreen> {
             action: SnackBarAction(
               label: 'Undo',
               onPressed: () {
-                context.read<UserDataRepository>().addToLibrary(courseRun.course.id).then((_) {
+                context.read<UserDataRepository>().addToLibrary(courseRun.course.coursenum).then((_) {
                   if (mounted) {
                     _refreshLibrary();
                     ScaffoldMessenger.of(context).clearSnackBars();
@@ -112,34 +107,48 @@ class _MyLibraryScreenState extends State<MyLibraryScreen> {
             ),
           ),
           Expanded(
-            child: FutureBuilder<Library>(
-              future: _libraryFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data!.courses.isEmpty) {
-                  return const Center(child: Text('Your library is empty.'));
-                } else {
-                  return BlocBuilder<CourseBloc, CourseListState>(
-                    builder: (context, state) {
-                      if (state is CourseListLoadedState) {
-                        final libraryCourses = snapshot.data!.courses
-                            .map((id) => state.courses[id])
-                            .whereType<FullCourseRun>()
-                            .toList();
-                        return FocusedCourseList(
-                          courses: libraryCourses,
-                          onLongPress: _showContextMenu,
-                        );
-                      } else {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                    },
-                  );
-                }
+            child: RefreshIndicator(
+              onRefresh: () async {
+                _refreshLibrary();
               },
+              child: FutureBuilder<Library>(
+                future: _libraryFuture,
+                builder: (context, librarySnapshot) {
+                  if (librarySnapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (librarySnapshot.hasError) {
+                    return Center(child: Text('Error: ${librarySnapshot.error}'));
+                  } else if (!librarySnapshot.hasData || librarySnapshot.data!.courses.isEmpty) {
+                    return const Center(child: Text('Your library is empty.'));
+                  } else {
+                    final libraryCourseNums = librarySnapshot.data?.courses ?? [];
+
+                    return FutureBuilder<Map<String, FullCourseRun>>(
+                      future: context.read<CourseRepository>().getCoursesMap(libraryCourseNums),
+                      builder: (context, courseMapSnapshot) {
+                        if (courseMapSnapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator());
+                        } else if (courseMapSnapshot.hasError) {
+                          return Center(child: Text('Error: ${courseMapSnapshot.error}'));
+                        } else if (!courseMapSnapshot.hasData || courseMapSnapshot.data!.isEmpty) {
+                          return const Center(child: Text('Your library is empty.'));
+                        } else {
+                          final loadedCourses = courseMapSnapshot.data!;
+
+                          final libraryCourses = libraryCourseNums.map((coursenum) => loadedCourses[coursenum])
+                            .where((course) => course != null)
+                            .toList();
+
+                          return FocusedCourseList(
+                            courses: libraryCourses.cast<FullCourseRun>(),
+                            onLongPress: _showContextMenu,
+                          );
+                        }
+                      },
+                    );
+                  }
+                }
+              ),
             ),
           ),
         ],

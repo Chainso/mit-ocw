@@ -4,7 +4,7 @@ part "library.g.dart";
 
 @JsonSerializable()
 class Library {
-  List<int> courses;
+  List<String> courses;
 
   Library({
     required this.courses

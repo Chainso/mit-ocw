@@ -20,9 +20,9 @@ class LectureListLoadedState extends LectureListState {
 }
 
 class LectureListErrorState extends LectureListState {
-  final String error;
+  final Object error;
 
-  LectureListErrorState(this.error);
+  LectureListErrorState({required this.error});
 
   @override
   List<Object?> get props => [error];

@@ -30,7 +30,7 @@ RouteBase get $mainShellRoute => StatefulShellRouteData.$route(
               factory: $SearchScreenRouteExtension._fromState,
             ),
             GoRouteData.$route(
-              path: '/courses/:courseId',
+              path: '/courses/:coursenum',
               name: 'course-home-redirect',
               factory: $CourseHomeScreenRedirectRouteExtension._fromState,
               routes: [
@@ -146,11 +146,11 @@ extension $CourseHomeScreenRedirectRouteExtension
     on CourseHomeScreenRedirectRoute {
   static CourseHomeScreenRedirectRoute _fromState(GoRouterState state) =>
       CourseHomeScreenRedirectRoute(
-        courseId: int.parse(state.pathParameters['courseId']!),
+        coursenum: state.pathParameters['coursenum']!,
       );
 
   String get location => GoRouteData.$location(
-        '/courses/${Uri.encodeComponent(courseId.toString())}',
+        '/courses/${Uri.encodeComponent(coursenum)}',
       );
 
   void go(BuildContext context) => context.go(location);
@@ -171,11 +171,11 @@ extension $CourseScreenRouteExtension on CourseScreenRoute {
 extension $CourseHomeScreenRouteExtension on CourseHomeScreenRoute {
   static CourseHomeScreenRoute _fromState(GoRouterState state) =>
       CourseHomeScreenRoute(
-        courseId: int.parse(state.pathParameters['courseId']!),
+        coursenum: state.pathParameters['coursenum']!,
       );
 
   String get location => GoRouteData.$location(
-        '/courses/${Uri.encodeComponent(courseId.toString())}/home',
+        '/courses/${Uri.encodeComponent(coursenum)}/home',
       );
 
   void go(BuildContext context) => context.go(location);
@@ -191,11 +191,11 @@ extension $CourseHomeScreenRouteExtension on CourseHomeScreenRoute {
 extension $CourseLecturesScreenRouteExtension on CourseLecturesScreenRoute {
   static CourseLecturesScreenRoute _fromState(GoRouterState state) =>
       CourseLecturesScreenRoute(
-        courseId: int.parse(state.pathParameters['courseId']!),
+        coursenum: state.pathParameters['coursenum']!,
       );
 
   String get location => GoRouteData.$location(
-        '/courses/${Uri.encodeComponent(courseId.toString())}/lectures',
+        '/courses/${Uri.encodeComponent(coursenum)}/lectures',
       );
 
   void go(BuildContext context) => context.go(location);
@@ -211,12 +211,12 @@ extension $CourseLecturesScreenRouteExtension on CourseLecturesScreenRoute {
 extension $CourseLectureScreenRouteExtension on CourseLectureScreenRoute {
   static CourseLectureScreenRoute _fromState(GoRouterState state) =>
       CourseLectureScreenRoute(
-        courseId: int.parse(state.pathParameters['courseId']!),
+        coursenum: state.pathParameters['coursenum']!,
         lectureKey: state.pathParameters['lectureKey']!,
       );
 
   String get location => GoRouteData.$location(
-        '/courses/${Uri.encodeComponent(courseId.toString())}/lectures/${Uri.encodeComponent(lectureKey)}',
+        '/courses/${Uri.encodeComponent(coursenum)}/lectures/${Uri.encodeComponent(lectureKey)}',
       );
 
   void go(BuildContext context) => context.go(location);

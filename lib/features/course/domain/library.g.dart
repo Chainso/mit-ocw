@@ -7,9 +7,8 @@ part of 'library.dart';
 // **************************************************************************
 
 Library _$LibraryFromJson(Map<String, dynamic> json) => Library(
-      courses: (json['courses'] as List<dynamic>)
-          .map((e) => (e as num).toInt())
-          .toList(),
+      courses:
+          (json['courses'] as List<dynamic>).map((e) => e as String).toList(),
     );
 
 Map<String, dynamic> _$LibraryToJson(Library instance) => <String, dynamic>{

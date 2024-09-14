@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:mit_ocw/config/ocw_config.dart';
 import 'package:mit_ocw/features/course/domain/lecture.dart';
 
 class LectureTile extends StatelessWidget {

@@ -8,7 +8,7 @@ abstract class LectureListEvent extends Equatable {
 class LectureListLoadEvent extends LectureListEvent {
   final String coursenum;
 
-  LectureListLoadEvent(this.coursenum);
+  const LectureListLoadEvent({required this.coursenum});
 
   @override
   List<String> get props => [coursenum];

@@ -55,13 +55,10 @@ class PaginatedQuery<CURSOR, ITEM> {
   }
 
   void addListenerToPagingController(PagingController<CURSOR, ITEM> pagingController, int? size) {
-    print("Adding listener to paging controller");
     pagingController.addPageRequestListener((key) {
       fetchPage(key, size)
         .then((results) {
           final pageItems = results.items.map((item) => item.item).toList();
-          print("Fetched page with key $key and size $size");
-          print(pageItems);
 
           if (results.hasNext) {
             pagingController.appendPage(pageItems, results.endCursor);
@@ -87,7 +84,6 @@ class StaticListPaginatedQuery<ITEM> extends PaginatedQuery<int, ITEM> {
   }
 
   static PaginatedResults<int, ITEM> _fetchPageSync<ITEM>(List<ITEM> items, int? cursor, int? pageSize) {
-    print("Fetching static list page with cursor $cursor and page size $pageSize");
     final startIndex = cursor ?? 0;
     final endIndex = pageSize != null ? min(startIndex + pageSize, items.length) : items.length;
 

@@ -9,10 +9,10 @@ import 'package:mit_ocw/features/course/presentation/courses/course_header.dart'
 import 'package:mit_ocw/bloc/course_bloc/course_bloc.dart';
 
 class CourseLectureScreen extends StatefulWidget {
-  final int courseId;
+  final String coursenum;
   final String lectureKey;
 
-  const CourseLectureScreen({super.key, required this.courseId, required this.lectureKey});
+  const CourseLectureScreen({super.key, required this.coursenum, required this.lectureKey});
 
   @override
   _CourseLectureScreenState createState() => _CourseLectureScreenState();
@@ -83,36 +83,39 @@ class _CourseLectureScreenState extends State<CourseLectureScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CourseBloc, CourseListState>(
+    return BlocBuilder<CourseBloc, CourseState>(
       builder: (context, state) {
-        if (state is CourseListLoadedState) {
-          final courseRun = state.courses[widget.courseId];
-          if (courseRun != null) {
-            return Scaffold(
-              backgroundColor: Colors.black,
-              body: Column(
-                children: [
-                  CourseHeader(courseTitle: courseRun.course.title),
-                  Expanded(
-                    child: Center(
-                      child: _youtubePlayerController != null
-                          ? YoutubePlayer(
-                              controller: _youtubePlayerController!,
-                              showVideoProgressIndicator: true,
-                              progressIndicatorColor: Colors.blueAccent,
-                            )
-                          : _errorMessage != null
-                              ? Text(_errorMessage!, style: const TextStyle(color: Colors.white))
-                              : const CircularProgressIndicator(),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
+        if (state is! CourseLoadedState) {
+          return const Expanded(
+            child: Center(
+              child: Text("Unexpected error occurred, please try again later")
+            )
+          );
         }
-        return const Scaffold(
-          body: Center(child: CircularProgressIndicator()),
+
+        CourseLoadedState loadedCourse = state;
+        final courseRun = loadedCourse.course;
+
+        return Scaffold(
+          backgroundColor: Colors.black,
+          body: Column(
+            children: [
+              CourseHeader(courseTitle: courseRun.course.title),
+              Expanded(
+                child: Center(
+                  child: _youtubePlayerController != null
+                      ? YoutubePlayer(
+                          controller: _youtubePlayerController!,
+                          showVideoProgressIndicator: true,
+                          progressIndicatorColor: Colors.blueAccent,
+                        )
+                      : _errorMessage != null
+                          ? Text(_errorMessage!, style: const TextStyle(color: Colors.white))
+                          : const CircularProgressIndicator(),
+                ),
+              ),
+            ],
+          ),
         );
       },
     );

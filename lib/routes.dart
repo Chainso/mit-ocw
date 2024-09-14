@@ -4,8 +4,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mit_ocw/bloc/course_bloc/course_bloc.dart';
+import 'package:mit_ocw/features/course/data/course_repository.dart';
 import 'package:mit_ocw/features/course/presentation/courses/course_detail_screen.dart';
+import 'package:mit_ocw/features/course/presentation/courses/course_header.dart';
 import 'package:mit_ocw/features/course/presentation/courses/course_lecture_list.dart';
 import 'package:mit_ocw/features/course/presentation/home/home.dart';
 import 'package:mit_ocw/features/course/presentation/home/search_screen.dart';
@@ -31,7 +35,7 @@ part "routes.g.dart";
         ),
         TypedGoRoute<CourseHomeScreenRedirectRoute>(
           name: "course-home-redirect",
-          path: "/courses/:courseId",
+          path: "/courses/:coursenum",
           routes: [
             TypedStatefulShellRoute<CourseScreenRoute>(
               branches: [
@@ -140,13 +144,13 @@ class SearchScreenRoute extends GoRouteData {
 
 @immutable
 class CourseHomeScreenRedirectRoute extends GoRouteData {
-  final int courseId;
-  const CourseHomeScreenRedirectRoute({required this.courseId});
+  final String coursenum;
+  const CourseHomeScreenRedirectRoute({required this.coursenum});
 
   @override
   FutureOr<String?> redirect(BuildContext context, GoRouterState state) {
     if (state.pageKey.value == location) {
-      return CourseHomeScreenRoute(courseId: courseId).location;
+      return CourseHomeScreenRoute(coursenum: coursenum).location;
     }
 
     return null;
@@ -154,7 +158,7 @@ class CourseHomeScreenRedirectRoute extends GoRouteData {
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return CourseDetailScreen(courseId: courseId);
+    return CourseDetailScreen(coursenum: coursenum);
   }
 }
 
@@ -176,7 +180,43 @@ class CourseScreenRoute extends StatefulShellRouteData {
           statusBarBrightness: Brightness.dark,
         ),
       ),
-      body: navigationShell,
+      body: BlocProvider<CourseBloc>(
+        create: (context) => CourseBloc(
+          context.read<CourseRepository>(),
+        )..add(CourseLoadEvent(coursenum: state.pathParameters["coursenum"]!)),
+        child: BlocBuilder<CourseBloc, CourseState>(
+          builder: (context, courseState) {
+            switch (courseState) {
+              case CourseWaitingState _:
+              case CourseLoadingState _:
+                return const Expanded(
+                  child: Center(
+                    child: CircularProgressIndicator()
+                  )
+                );
+              case CourseLoadedState _:
+                return Stack(
+                  children: [
+                    CourseHeader(courseTitle: courseState.course.course.title),
+                    navigationShell,
+                  ]
+                );
+              case CourseNotFoundState notFound:
+                return Expanded(
+                  child: Center(
+                    child: Text("Course ${notFound.coursenum} not found")
+                  )
+                );
+              case CourseErrorState error:
+                return Expanded(
+                  child: Center(
+                    child: Text("Could not load course ${error.coursenum}: ${error.error.toString()}")
+                  )
+                );
+            }
+          }
+        )
+      ),
       drawer: NavigationDrawer(
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: (index) {
@@ -202,7 +242,7 @@ class CourseScreenRoute extends StatefulShellRouteData {
             label: Text("Lectures"),
           ),
         ],
-      ),
+      )
     );
   }
 }
@@ -214,14 +254,14 @@ class CourseHomeBranch extends StatefulShellBranchData {
 
 @immutable
 class CourseHomeScreenRoute extends GoRouteData {
-  final int courseId;
+  final String coursenum;
 
-  const CourseHomeScreenRoute({required this.courseId});
+  const CourseHomeScreenRoute({required this.coursenum});
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    print("Building CourseHomeScreenRoute for courseId: $courseId");
-    return CourseDetailScreen(courseId: courseId);
+    print("Building CourseHomeScreenRoute for coursenum: $coursenum");
+    return CourseDetailScreen(coursenum: coursenum);
   }
 }
 
@@ -232,31 +272,31 @@ class CourseLecturesBranch extends StatefulShellBranchData {
 
 @immutable
 class CourseLecturesScreenRoute extends GoRouteData {
-  const CourseLecturesScreenRoute({required this.courseId});
+  const CourseLecturesScreenRoute({required this.coursenum});
 
-  final int courseId;
+  final String coursenum;
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    print("Building CourseLecturesScreenRoute for courseId: $courseId");
-    return CourseLecturesScreen(courseId: courseId);
+    print("Building CourseLecturesScreenRoute for coursenum: $coursenum");
+    return CourseLecturesScreen(coursenum: coursenum);
   }
 }
 
 @immutable
 class CourseLectureScreenRoute extends GoRouteData {
   const CourseLectureScreenRoute({
-    required this.courseId,
+    required this.coursenum,
     required this.lectureKey
   });
 
-  final int courseId;
+  final String coursenum;
   final String lectureKey;
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
     return CourseLectureScreen(
-      courseId: courseId,
+      coursenum: coursenum,
       lectureKey: lectureKey
     );
   }

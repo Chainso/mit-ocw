@@ -16,7 +16,7 @@ class CourseTile extends StatelessWidget {
         final isWide = constraints.maxWidth > 200;
         return InkWell(
           onTap: () {
-            CourseHomeScreenRoute(courseId: courseRun.course.id).go(context);
+            CourseHomeScreenRoute(coursenum: courseRun.course.coursenum).go(context);
           },
           onLongPress: onLongPress != null ? () => onLongPress!(context, courseRun) : null,
           child: Card(

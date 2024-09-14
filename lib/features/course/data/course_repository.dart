@@ -163,6 +163,35 @@ class CourseRepository {
     }
   }
 
+  Future<Map<String, FullCourseRun>> getCoursesMap(List<String> coursenums) async {
+    ElasticSearchQuery coursesQuery = ElasticSearchQuery(
+      from: 0,
+      size: coursenums.length,
+      query: elastic.Query.bool(
+        must: [
+          courseFilter,
+          elastic.Query.term("coursenum", coursenums)
+        ],
+      ),
+    );
+
+    final response = await dio.post(
+      _searchUrl,
+      data: coursesQuery.toJson(),
+    );
+
+    if (response.statusCode == 200) {
+      final courseSearch = DocSearch<Course>.fromJson(response.data, Course.fromJsonModel);
+      final fullCourseRuns = courseSearch.hits.hits.map((hit) => FullCourseRun.fromCourse(hit.source)).toList();
+
+      // Convert to map of coursenum to FullCourseRun
+      return Map.fromEntries(fullCourseRuns.map((course) => MapEntry(course.course.coursenum, course)));
+    } else {
+      throw Exception('Failed to load courses $coursenums');
+    }
+  }
+  
+
   Future<List<Lecture>> getLectureVideos(String coursenum) async {
     ElasticSearchQuery courseQuery = ElasticSearchQuery(
       from: 0,

@@ -9,47 +9,64 @@ import 'package:mit_ocw/routes.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class CourseLecturesScreen extends StatelessWidget {
-  final int courseId;
+  final String coursenum;
 
-  const CourseLecturesScreen({Key? key, required this.courseId}) : super(key: key);
+  const CourseLecturesScreen({super.key, required this.coursenum});
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CourseBloc, CourseListState>(
+    return BlocBuilder<CourseBloc, CourseState>(
       builder: (context, courseState) {
-        if (courseState is CourseListLoadedState) {
-          final courseRun = courseState.courses[courseId];
-          if (courseRun != null) {
-            return BlocProvider(
-              create: (context) => LectureBloc(
-                context.read<CourseRepository>(),
-              )..add(LectureListLoadEvent(courseRun.course.coursenum)),
-              child: BlocBuilder<LectureBloc, LectureListState>(
-                builder: (context, state) {
-                  if (state is LectureListLoadingState) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (state is LectureListErrorState) {
-                    return Center(child: Text(state.error, style: const TextStyle(color: Colors.white)));
-                  } else if (state is LectureListLoadedState) {
-                    return Scaffold(
-                      backgroundColor: Colors.black,
-                      body: Column(
-                        children: [
-                          CourseHeader(courseTitle: courseRun.course.title),
-                          Expanded(
-                            child: _buildLectureList(state.lectures),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                  return const Center(child: Text('Unexpected state'));
-                },
-              ),
-            );
-          }
+        if (courseState is! CourseLoadedState) {
+          return const Expanded(
+            child: Center(
+              child: Text("Unexpected error occurred, please try again later")
+            )
+          );
         }
-        return const Center(child: CircularProgressIndicator());
+
+        CourseLoadedState loadedCourse = courseState;
+
+        final courseRun = loadedCourse.course;
+
+        return BlocProvider(
+          create: (context) => LectureBloc(
+            context.read<CourseRepository>(),
+          )..add(LectureListLoadEvent(coursenum: courseRun.course.coursenum)),
+          child: BlocBuilder<LectureBloc, LectureListState>(
+            builder: (context, lectureListState) {
+              switch (lectureListState) {
+                case LectureListLoadingState _:
+                  return const Expanded(
+                    child: Center(
+                      child: CircularProgressIndicator()
+                    )
+                  );
+                case LectureListErrorState _:
+                  return const Expanded(
+                    child: Center(
+                      child: Text(
+                        "Error loading lectures, please try again",
+                        style: TextStyle(color: Colors.white)
+                      )
+                    )
+                  );
+                case LectureListLoadedState loadedLectures:
+                  return Scaffold(
+                    backgroundColor: Colors.black,
+                    body: Column(
+                      children: [
+                        CourseHeader(courseTitle: courseRun.course.title),
+                        Expanded(
+                          child: _buildLectureList(loadedLectures.lectures),
+                        ),
+                      ],
+                    ),
+                  );
+              }
+            },
+          ),
+        );
       },
     );
   }
@@ -62,7 +79,7 @@ class CourseLecturesScreen extends StatelessWidget {
         return InkWell(
           onTap: () {
             CourseLectureScreenRoute(
-              courseId: courseId,
+              coursenum: coursenum,
               lectureKey: lecture.key,
             ).go(context);
           },

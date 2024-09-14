@@ -17,18 +17,19 @@ class UserDataRepository {
       return Library(courses: []);
     }
 
+    print("Got library serialized: $librarySerialized");
     Library library = Library.fromJson(jsonDecode(librarySerialized));
     print("Retrieved library: ${library.toJson()}");
     return library;
   }
 
-  Future<bool> addToLibrary(int courseId) async {
+  Future<bool> addToLibrary(String coursenum) async {
     Library library = await getLibrary();
-    if (!library.courses.contains(courseId)) {
-      library.courses.add(courseId);
+    if (!library.courses.contains(coursenum)) {
+      library.courses.add(coursenum);
       await prefs.setString(UserDataKeys.library.name, jsonEncode(library.toJson()));
 
-      print("Added to library: $courseId");
+      print("Added to library: $coursenum");
       print("Current library: ${library.toJson()}");
 
       return true;
@@ -37,18 +38,18 @@ class UserDataRepository {
     return false;
   }
 
-  Future<void> removeFromLibrary(int courseId) async {
+  Future<void> removeFromLibrary(String coursenum) async {
     Library library = await getLibrary();
-    library.courses.remove(courseId);
+    library.courses.remove(coursenum);
     await prefs.setString(UserDataKeys.library.name, jsonEncode(library.toJson()));
 
-    print("Removed from library: $courseId");
+    print("Removed from library: $coursenum");
     print("Current library: ${library.toJson()}");
   }
 
-  Future<bool> isInLibrary(int courseId) async {
+  Future<bool> isInLibrary(String coursenum) async {
     Library library = await getLibrary();
-    return library.courses.contains(courseId);
+    return library.courses.contains(coursenum);
   }
 }
 
