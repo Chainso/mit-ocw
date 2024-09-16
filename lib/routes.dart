@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -17,6 +18,8 @@ import 'package:mit_ocw/features/course/presentation/library/my_library_screen.d
 import 'package:mit_ocw/features/course/presentation/courses/course_lecture_screen.dart';
 
 part "routes.g.dart";
+
+final rootNavigatorKey = GlobalKey<NavigatorState>();
 
 @TypedStatefulShellRoute<MainShellRoute>(
   branches: [
@@ -37,11 +40,12 @@ part "routes.g.dart";
           name: "course-home-redirect",
           path: "/courses/:coursenum",
           routes: [
-            TypedStatefulShellRoute<CourseScreenRoute>(
+            TypedStatefulShellRoute<CourseRootShellRoute>(
               branches: [
                 TypedStatefulShellBranch<CourseHomeBranch>(
                   routes: [
                     TypedGoRoute<CourseHomeScreenRoute>(
+                      name: "course-home",
                       path: "home",
                     ),
                   ]
@@ -49,6 +53,7 @@ part "routes.g.dart";
                 TypedStatefulShellBranch<CourseLecturesBranch>(
                   routes: [
                     TypedGoRoute<CourseLecturesScreenRoute>(
+                      name: "course-lectures",
                       path: "lectures",
                       routes: [
                         TypedGoRoute<CourseLectureScreenRoute>(
@@ -145,26 +150,39 @@ class SearchScreenRoute extends GoRouteData {
 @immutable
 class CourseHomeScreenRedirectRoute extends GoRouteData {
   final String coursenum;
+
   const CourseHomeScreenRedirectRoute({required this.coursenum});
 
   @override
   FutureOr<String?> redirect(BuildContext context, GoRouterState state) {
-    if (state.pageKey.value == location) {
+    if (state.uri.toString() == location) {
       return CourseHomeScreenRoute(coursenum: coursenum).location;
     }
-
+    
     return null;
   }
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return CourseDetailScreen(coursenum: coursenum);
+    print("Building CourseHomeScreenRedirectRoute for coursenum: $coursenum");
+    print("Fullpath ${state.fullPath} $location");
+    if (state.uri.toString() == location) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        context.go(const HomeScreenRoute().location);
+      });
+    }
+
+    return const Expanded(
+      child: Center(
+        child: CircularProgressIndicator()
+      )
+    );
   }
 }
 
 @immutable
-class CourseScreenRoute extends StatefulShellRouteData {
-  const CourseScreenRoute();
+class CourseRootShellRoute extends StatefulShellRouteData {
+  const CourseRootShellRoute();
 
   @override
   Widget builder(BuildContext context, GoRouterState state, StatefulNavigationShell navigationShell) {
@@ -261,6 +279,12 @@ class CourseHomeScreenRoute extends GoRouteData {
   @override
   Widget build(BuildContext context, GoRouterState state) {
     print("Building CourseHomeScreenRoute for coursenum: $coursenum");
+    print("Navigator Stack: ${GoRouter.of(context).routerDelegate.currentConfiguration.uri}");
+
+    for (var i = 0; i < GoRouter.of(context).routerDelegate.currentConfiguration.matches.length; i++) {
+      final match = GoRouter.of(context).routerDelegate.currentConfiguration.matches[i];
+      print("Match $i: ${match.pageKey} ${match.matchedLocation}");
+    }
     return CourseDetailScreen(coursenum: coursenum);
   }
 }

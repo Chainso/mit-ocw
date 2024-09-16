@@ -35,12 +35,13 @@ RouteBase get $mainShellRoute => StatefulShellRouteData.$route(
               factory: $CourseHomeScreenRedirectRouteExtension._fromState,
               routes: [
                 StatefulShellRouteData.$route(
-                  factory: $CourseScreenRouteExtension._fromState,
+                  factory: $CourseRootShellRouteExtension._fromState,
                   branches: [
                     StatefulShellBranchData.$branch(
                       routes: [
                         GoRouteData.$route(
                           path: 'home',
+                          name: 'course-home',
                           factory: $CourseHomeScreenRouteExtension._fromState,
                         ),
                       ],
@@ -49,6 +50,7 @@ RouteBase get $mainShellRoute => StatefulShellRouteData.$route(
                       routes: [
                         GoRouteData.$route(
                           path: 'lectures',
+                          name: 'course-lectures',
                           factory:
                               $CourseLecturesScreenRouteExtension._fromState,
                           routes: [
@@ -163,9 +165,9 @@ extension $CourseHomeScreenRedirectRouteExtension
   void replace(BuildContext context) => context.replace(location);
 }
 
-extension $CourseScreenRouteExtension on CourseScreenRoute {
-  static CourseScreenRoute _fromState(GoRouterState state) =>
-      const CourseScreenRoute();
+extension $CourseRootShellRouteExtension on CourseRootShellRoute {
+  static CourseRootShellRoute _fromState(GoRouterState state) =>
+      const CourseRootShellRoute();
 }
 
 extension $CourseHomeScreenRouteExtension on CourseHomeScreenRoute {

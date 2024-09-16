@@ -5,10 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'package:mit_ocw/features/course/data/course_repository.dart';
 import 'package:mit_ocw/features/course/data/user_data_repository.dart';
 import 'package:mit_ocw/routes.dart';
-final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 final _router = GoRouter(
-  navigatorKey: _rootNavigatorKey,
+  navigatorKey: rootNavigatorKey,
   routes: $appRoutes
 );
 
