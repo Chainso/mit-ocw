@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:mit_ocw/bloc/course_bloc/course_bloc.dart';
+import 'package:mit_ocw/bloc/library_bloc/library_bloc.dart';
 import 'package:mit_ocw/config/ocw_config.dart';
-import 'package:mit_ocw/features/course/data/user_data_repository.dart';
-import 'package:mit_ocw/features/course/domain/course.dart';
 import 'package:mit_ocw/features/course/presentation/courses/course_header.dart';
 import 'package:mit_ocw/routes.dart';
 
@@ -148,14 +147,95 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                           ),
                           const SizedBox(width: 16),
                           Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () => _addToLibrary(context, courseRun),
-                              icon: const Icon(Icons.add, color: Colors.white),
-                              label: const Text('Add to Library', style: TextStyle(color: Colors.white)),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.grey[800],
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                              ),
+                            child: BlocConsumer<LibraryBloc, LibraryState>(
+                              listener: (context, libraryState) {
+                                switch (libraryState) {
+                                  case LibraryCourseAddedState courseAddedState:
+                                    if (courseAddedState.isUndo) {
+                                      return;
+                                    }
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Added ${courseAddedState.coursenum} to library'),
+                                        duration: const Duration(seconds: 5),
+                                        action: SnackBarAction(
+                                          label: 'Undo',
+                                          onPressed: () {
+                                            context.read<LibraryBloc>().add(LibraryRemoveCourseEvent(coursenum: courseRun.course.coursenum));
+                                          },
+                                        ),
+                                      ),
+                                    );
+                                  case LibraryCourseRemovedState courseRemovedState:
+                                    if (courseRemovedState.isUndo) {
+                                      return;
+                                    }
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Removed ${courseRemovedState.coursenum} from library'),
+                                        duration: const Duration(seconds: 5),
+                                        action: SnackBarAction(
+                                          label: 'Undo',
+                                          onPressed: () {
+                                            context.read<LibraryBloc>().add(LibraryAddCourseEvent(coursenum: courseRun.course.coursenum));
+                                          },
+                                        ),
+                                      ),
+                                    );
+                                  case LibraryAddCourseErrorState addCourseError:
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Error adding ${addCourseError.coursenum} to library, try again later'),
+                                          duration: const Duration(seconds: 5),
+                                          action: SnackBarAction(
+                                            label: 'Retry',
+                                            onPressed: () => context.read<LibraryBloc>().add(LibraryAddCourseEvent(coursenum: addCourseError.coursenum)),
+                                            ),
+                                          ),
+                                        );
+                                    break;
+                                  case LibraryRemoveCourseErrorState removeCourseError:
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Error removing ${removeCourseError.coursenum} from library, try again later'),
+                                          duration: const Duration(seconds: 5),
+                                          action: SnackBarAction(
+                                            label: 'Retry',
+                                            onPressed: () => context.read<LibraryBloc>().add(LibraryRemoveCourseEvent(coursenum: removeCourseError.coursenum)),
+                                            ),
+                                          ),
+                                        );
+                                    break;
+                                  default:
+                                }
+                              },
+                              builder: (context, libraryState) {
+                                final isCourseInLibrary = libraryState.library.coursenums.any((coursenum) => coursenum == courseRun.course.coursenum);
+
+                                if (isCourseInLibrary) {
+                                  return ElevatedButton.icon(
+                                    onPressed: () => context.read<LibraryBloc>().add(LibraryRemoveCourseEvent(coursenum: courseRun.course.coursenum)),
+                                    icon: const Icon(Icons.remove, color: Colors.white),
+                                    label: const Text('Remove from Library', style: TextStyle(color: Colors.white)),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                    ),
+                                  );
+                                } else {
+                                  return ElevatedButton.icon(
+                                    onPressed: () => context.read<LibraryBloc>().add(LibraryAddCourseEvent(coursenum: courseRun.course.coursenum)),
+                                    icon: const Icon(Icons.add, color: Colors.white),
+                                    label: const Text('Add to Library', style: TextStyle(color: Colors.white)),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.grey[800],
+                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                    ),
+                                  );
+                                }
+                              }
                             ),
                           ),
                         ],
@@ -195,33 +275,5 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       backgroundColor: Colors.blue.shade700,
       elevation: 2,
     );
-  }
-
-  void _addToLibrary(BuildContext context, FullCourseRun courseRun) {
-    context.read<UserDataRepository>().addToLibrary(courseRun.course.coursenum).then((added) {
-      if (mounted) {
-        final addedSnackbar = SnackBar(
-          content: Text('Added ${courseRun.course.title} to my library'),
-          duration: const Duration(seconds: 5),
-          action: SnackBarAction(
-            label: 'Undo',
-            onPressed: () {
-              context.read<UserDataRepository>().removeFromLibrary(courseRun.course.coursenum).then((_) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).clearSnackBars();
-                }
-              });
-            },
-          ),
-        );
-
-        final alreadyExistsSnackbar = SnackBar(
-          content: Text('${courseRun.course.title} is already in my library'),
-          duration: const Duration(seconds: 5),
-        );
-
-        ScaffoldMessenger.of(context).showSnackBar(added ? addedSnackbar : alreadyExistsSnackbar);
-      }
-    });
   }
 }

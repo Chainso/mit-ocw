@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mit_ocw/bloc/library_bloc/library_bloc.dart';
 import 'package:mit_ocw/features/course/data/course_repository.dart';
+import 'package:mit_ocw/features/course/data/playlist_repository.dart';
 import 'package:mit_ocw/features/course/data/user_data_repository.dart';
+import 'package:mit_ocw/features/persistence/database.dart';
 import 'package:mit_ocw/routes.dart';
 
 final _router = GoRouter(
@@ -28,34 +31,41 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
+
+    final database = MitOcwDatabase();
+
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider<CourseRepository>(
           create: (context) => CourseRepository(),
         ),
-        RepositoryProvider<UserDataRepository>(
-          create: (context) => UserDataRepository(),
+        RepositoryProvider<PlaylistRepository>(
+          create: (context) => PlaylistRepository(database: database),
         ),
       ],
-      child: MaterialApp.router(
-        title: 'MIT OpenCourseWare',
-        routerConfig: _router,
-        theme: ThemeData.dark().copyWith(
-          primaryColor: Colors.red,
-          scaffoldBackgroundColor: Colors.black,
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Colors.black,
-            elevation: 0,
+      child: BlocProvider<LibraryBloc>(
+        create: (context) => LibraryBloc(context.read<PlaylistRepository>())
+            ..add(const LibraryLoadEvent()),
+        child: MaterialApp.router(
+          title: 'MIT OpenCourseWare',
+          routerConfig: _router,
+          theme: ThemeData.dark().copyWith(
+            primaryColor: Colors.red,
+            scaffoldBackgroundColor: Colors.black,
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Colors.black,
+              elevation: 0,
+            ),
+            textTheme: const TextTheme(
+              headlineSmall: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              bodyMedium: TextStyle(color: Colors.white70),
+              titleLarge: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
           ),
-          textTheme: const TextTheme(
-            headlineSmall: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-            bodyMedium: TextStyle(color: Colors.white70),
-            titleLarge: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-        ),
-        builder: (context, child) {
-          return SafeAreaWrapper(child: child!);
-        },
+          builder: (context, child) {
+            return SafeAreaWrapper(child: child!);
+          },
+        )
       )
     );
   }
