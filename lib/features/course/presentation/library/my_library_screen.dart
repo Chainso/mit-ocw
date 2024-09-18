@@ -86,10 +86,11 @@ class _MyLibraryScreenState extends State<MyLibraryScreen> {
                           duration: const Duration(seconds: 5),
                           action: SnackBarAction(
                             label: 'Undo',
-                            onPressed: () => context.read<LibraryBloc>().add(LibraryAddCourseEvent(coursenum: courseRemovedState.coursenum)),
+                            onPressed: () => context.read<LibraryBloc>().add(LibraryAddCourseEvent(coursenum: courseRemovedState.coursenum, isUndo: true)),
                           ),
                         ),
                       );
+                      break;
                     case LibraryAddCourseErrorState addCourseError:
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(

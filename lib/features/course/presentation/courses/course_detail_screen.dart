@@ -162,11 +162,12 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                         action: SnackBarAction(
                                           label: 'Undo',
                                           onPressed: () {
-                                            context.read<LibraryBloc>().add(LibraryRemoveCourseEvent(coursenum: courseRun.course.coursenum));
+                                            context.read<LibraryBloc>().add(LibraryRemoveCourseEvent(coursenum: courseRun.course.coursenum, isUndo: true));
                                           },
                                         ),
                                       ),
                                     );
+                                    break;
                                   case LibraryCourseRemovedState courseRemovedState:
                                     if (courseRemovedState.isUndo) {
                                       return;
@@ -179,11 +180,12 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                         action: SnackBarAction(
                                           label: 'Undo',
                                           onPressed: () {
-                                            context.read<LibraryBloc>().add(LibraryAddCourseEvent(coursenum: courseRun.course.coursenum));
+                                            context.read<LibraryBloc>().add(LibraryAddCourseEvent(coursenum: courseRun.course.coursenum, isUndo: true));
                                           },
                                         ),
                                       ),
                                     );
+                                    break;
                                   case LibraryAddCourseErrorState addCourseError:
                                     ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
