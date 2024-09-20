@@ -39,14 +39,11 @@ class PlaylistRepository extends DatabaseAccessor<MitOcwDatabase> with _$Playlis
   }
 
   Future<PlaylistData> createPlaylist(String name) async {
-    final playlistToSave = PlaylistCompanion(
-      name: Value(name),
+    final playlistToSave = PlaylistCompanion.insert(
+      name: name
     );
 
-    await into(db.playlist).insert(playlistToSave);
-
-    final playlist = await getPlaylist(name);
-    return playlist!;
+    return await into(db.playlist).insertReturning(playlistToSave);
   }
 
   Future<PlaylistData?> getDefaultPlaylist() async {

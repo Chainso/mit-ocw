@@ -3,9 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mit_ocw/bloc/library_bloc/library_bloc.dart';
+import 'package:mit_ocw/features/course/data/course_preferences_repository.dart';
 import 'package:mit_ocw/features/course/data/course_repository.dart';
 import 'package:mit_ocw/features/course/data/playlist_repository.dart';
-import 'package:mit_ocw/features/course/data/user_data_repository.dart';
+import 'package:mit_ocw/features/course/data/watch_history_repository.dart';
 import 'package:mit_ocw/features/persistence/database.dart';
 import 'package:mit_ocw/routes.dart';
 
@@ -42,6 +43,12 @@ class MyApp extends StatelessWidget {
         RepositoryProvider<PlaylistRepository>(
           create: (context) => PlaylistRepository(database: database),
         ),
+        RepositoryProvider<CoursePreferencesRepository>(
+          create: (context) => CoursePreferencesRepository(database: database),
+        ),
+        RepositoryProvider<WatchHistoryRepository>(
+          create: (context) => WatchHistoryRepository(database: database, coursePreferencesRepository: context.read<CoursePreferencesRepository>())
+        )
       ],
       child: BlocProvider<LibraryBloc>(
         create: (context) => LibraryBloc(context.read<PlaylistRepository>())

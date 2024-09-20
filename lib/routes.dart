@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mit_ocw/bloc/course_bloc/course_bloc.dart';
+import 'package:mit_ocw/bloc/lecture_bloc/lecture_bloc.dart';
 import 'package:mit_ocw/features/course/data/course_repository.dart';
 import 'package:mit_ocw/features/course/presentation/courses/course_detail_screen.dart';
 import 'package:mit_ocw/features/course/presentation/courses/course_header.dart';
@@ -52,13 +53,21 @@ final rootNavigatorKey = GlobalKey<NavigatorState>();
                 ),
                 TypedStatefulShellBranch<CourseLecturesBranch>(
                   routes: [
-                    TypedGoRoute<CourseLecturesScreenRoute>(
-                      name: "course-lectures",
-                      path: "lectures",
-                      routes: [
-                        TypedGoRoute<CourseLectureScreenRoute>(
-                          path: ":lectureKey",
-                        ),
+                    TypedStatefulShellRoute<CourseLecturesScreenShellRoute>(
+                      branches: [
+                      TypedStatefulShellBranch<CourseLecturesScreenBranch>(
+                        routes: [
+                            TypedGoRoute<CourseLecturesScreenRoute>(
+                              name: "course-lectures",
+                              path: "lectures",
+                              routes: [
+                                TypedGoRoute<CourseLectureScreenRoute>(
+                                  path: ":lectureKey",
+                                ),
+                              ]
+                            )
+                          ]
+                        )
                       ]
                     )
                   ]
@@ -292,6 +301,47 @@ class CourseHomeScreenRoute extends GoRouteData {
 @immutable
 class CourseLecturesBranch extends StatefulShellBranchData {
   const CourseLecturesBranch();
+}
+
+class CourseLecturesScreenShellRoute extends StatefulShellRouteData {
+  const CourseLecturesScreenShellRoute();
+
+  @override
+  Widget builder(BuildContext context, GoRouterState state, StatefulNavigationShell navigationShell) {
+    return BlocProvider(
+      create: (context) => LectureBloc(
+        context.read<CourseRepository>(),
+      )..add(LectureListLoadEvent(coursenum: state.pathParameters["coursenum"]!)),
+      child: BlocBuilder<LectureBloc, LectureListState>(
+        builder: (context, lectureListState) {
+          switch (lectureListState) {
+            case LectureListLoadingState _:
+              return const Expanded(
+                child: Center(
+                  child: CircularProgressIndicator()
+                )
+              );
+            case LectureListErrorState _:
+              return const Expanded(
+                child: Center(
+                  child: Text(
+                    "Error loading lectures, please try again",
+                    style: TextStyle(color: Colors.white)
+                  )
+                )
+              );
+            case LectureListLoadedState _:
+              return navigationShell;
+          }
+        },
+      )
+    );
+  }
+}
+
+@immutable
+class CourseLecturesScreenBranch extends StatefulShellBranchData {
+  const CourseLecturesScreenBranch();
 }
 
 @immutable

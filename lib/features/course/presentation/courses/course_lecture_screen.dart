@@ -1,12 +1,16 @@
+import 'dart:async';
 import 'dart:convert';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:logger/logger.dart';
+import 'package:mit_ocw/bloc/lecture_bloc/lecture_bloc.dart';
+import 'package:mit_ocw/features/course/data/watch_history_repository.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:dio/dio.dart';
 import 'package:html/parser.dart' as parser;
 import 'package:mit_ocw/config/ocw_config.dart';
-import 'package:mit_ocw/features/course/presentation/courses/course_header.dart';
-import 'package:mit_ocw/bloc/course_bloc/course_bloc.dart';
 
 class CourseLectureScreen extends StatefulWidget {
   final String coursenum;
@@ -18,7 +22,9 @@ class CourseLectureScreen extends StatefulWidget {
   _CourseLectureScreenState createState() => _CourseLectureScreenState();
 }
 
-class _CourseLectureScreenState extends State<CourseLectureScreen> {
+class _CourseLectureScreenState extends State<CourseLectureScreen> with WidgetsBindingObserver {
+  final Logger logger = Logger();
+
   YoutubePlayerController? _youtubePlayerController;
   final Dio _dio = Dio();
   String? _errorMessage;
@@ -26,7 +32,44 @@ class _CourseLectureScreenState extends State<CourseLectureScreen> {
   @override
   void initState() {
     super.initState();
+
+    WidgetsBinding.instance.addObserver(this);
     _initializeVideo();
+
+    Timer.periodic(
+      const Duration(seconds: 10),
+      (timer) => updateWatchHistory()
+    );
+  }
+
+  void updateWatchHistory() {
+    if (_youtubePlayerController != null
+      && _youtubePlayerController!.value.position.inMilliseconds > 0) {
+      logger.i("Updating position to ${_youtubePlayerController!.value.position} out of ${_youtubePlayerController!.value.metaData.duration}");
+      context.read<WatchHistoryRepository>().upsertWatchHistory(
+        widget.coursenum,
+        widget.lectureKey,
+        _youtubePlayerController!.value.position.inMilliseconds,
+        _youtubePlayerController!.value.metaData.duration.inMilliseconds
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    if (_youtubePlayerController != null) {
+      logger.i("Disposing video at position: ${_youtubePlayerController!.value.position} out of ${_youtubePlayerController!.value.metaData.duration}");
+      _youtubePlayerController?.dispose();
+    }
+
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    logger.i("AppLifecycleState changed: $state");
+    updateWatchHistory();
   }
 
   Future<void> _initializeVideo() async {
@@ -46,15 +89,32 @@ class _CourseLectureScreenState extends State<CourseLectureScreen> {
               final youtubeLink = sources[0]['src'] as String;
               final videoId = YoutubePlayer.convertUrlToId(youtubeLink);
               if (videoId != null) {
-                setState(() {
-                  _youtubePlayerController = YoutubePlayerController(
-                    initialVideoId: videoId,
-                    flags: const YoutubePlayerFlags(
-                      autoPlay: false,
-                      mute: false,
-                    ),
-                  );
-                });
+                if (mounted) {
+                  final watchHistory = await context.read<WatchHistoryRepository>().getWatchHistory(widget.coursenum, widget.lectureKey);
+
+                  Duration startPos = const Duration(milliseconds: 0);
+
+                  if (watchHistory != null) {
+                    final watchPercent = watchHistory.position / watchHistory.lectureLength;
+
+                    // If watched more than 98%, start from beginning
+                    if (watchPercent < 0.98) {
+                      startPos = Duration(milliseconds: watchHistory.position);
+                    }
+                  }
+
+                  setState(() {
+                    _youtubePlayerController = YoutubePlayerController(
+                      initialVideoId: videoId,
+                      flags: YoutubePlayerFlags(
+                        autoPlay: false,
+                        mute: false,
+                        startAt: startPos.inSeconds,
+                      ),
+                    );
+                  });
+                }
+
                 return;
               }
             }
@@ -76,47 +136,91 @@ class _CourseLectureScreenState extends State<CourseLectureScreen> {
   }
 
   @override
-  void dispose() {
-    _youtubePlayerController?.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CourseBloc, CourseState>(
-      builder: (context, state) {
-        if (state is! CourseLoadedState) {
-          return const Expanded(
-            child: Center(
-              child: Text("Unexpected error occurred, please try again later")
-            )
-          );
-        }
-
-        CourseLoadedState loadedCourse = state;
-        final courseRun = loadedCourse.course;
-
-        return Scaffold(
-          backgroundColor: Colors.black,
-          body: Column(
-            children: [
-              CourseHeader(courseTitle: courseRun.course.title),
-              Expanded(
+    return BlocBuilder<LectureBloc, LectureListState>(
+      builder: (context, lectureListState) {
+        switch (lectureListState) {
+          case LectureListLoadingState _:
+            return const Expanded(
+              child: Center(
+                child: CircularProgressIndicator()
+              )
+            );
+          case LectureListErrorState _:
+            return const Expanded(
+              child: Center(
+                child: Text(
+                  "Error loading lecture, please try again",
+                  style: TextStyle(color: Colors.white)
+                )
+              )
+            );
+          case LectureListLoadedState loadedLectures:
+            final lecture = loadedLectures.lectures.firstWhereOrNull((element) => element.key == widget.lectureKey);
+            
+            if (lecture == null) {
+              return const Expanded(
                 child: Center(
-                  child: _youtubePlayerController != null
-                      ? YoutubePlayer(
-                          controller: _youtubePlayerController!,
-                          showVideoProgressIndicator: true,
-                          progressIndicatorColor: Colors.blueAccent,
-                        )
-                      : _errorMessage != null
-                          ? Text(_errorMessage!, style: const TextStyle(color: Colors.white))
-                          : const CircularProgressIndicator(),
-                ),
+                  child: Text(
+                    "Error loading lecture, please try again",
+                    style: TextStyle(color: Colors.white)
+                  )
+                )
+              );
+            }
+
+            return Scaffold(
+              backgroundColor: Colors.black,
+              body: Column(
+                children: [
+                  Expanded(
+                    child: ListView(
+                      children: [ 
+                        Center(
+                          child: _youtubePlayerController != null
+                              ? YoutubePlayerBuilder(
+                                player: YoutubePlayer(
+                                  controller: _youtubePlayerController!,
+                                  showVideoProgressIndicator: true,
+                                  progressIndicatorColor: Colors.blueAccent,
+                                  onEnded: (metaData) {
+                                    logger.i("Video ended");
+                                    updateWatchHistory();
+                                  },
+                                ),
+                                builder: (context, player) {
+                                  return player;
+                                }
+                              )
+                              : _errorMessage != null
+                                  ? Text(_errorMessage!, style: const TextStyle(color: Colors.white))
+                                  : const CircularProgressIndicator(),
+                        ),
+                        // const SizedBox(height: 12),
+                        // Padding(                        
+                        //   padding: const EdgeInsets.only(left: 16, right: 16),
+                        //   child: Text(
+                        //     lecture.title,
+                        //     style: Theme.of(context).textTheme.titleMedium,
+                        //   )
+                        // ),
+                        // const SizedBox(height: 24),
+                        // Padding(
+                        //   padding: const EdgeInsets.only(left: 16, right: 16),
+                        //   child: MarkdownBody(
+                        //     data: lecture.shortDescription ?? '',
+                        //     styleSheet: MarkdownStyleSheet(
+                        //       p: Theme.of(context).textTheme.bodyMedium,
+                        //     ),
+                        //   ),
+                        // )
+                      ]
+                    )
+                  ),
+                ],
               ),
-            ],
-          ),
-        );
+            );
+        }
       },
     );
   }

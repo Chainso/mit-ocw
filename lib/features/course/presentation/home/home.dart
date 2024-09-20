@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:mit_ocw/features/course/data/course_repository.dart';
 import 'package:mit_ocw/features/course/data/pagination.dart';
+import 'package:mit_ocw/features/course/data/watch_history_repository.dart';
 import 'package:mit_ocw/features/course/presentation/home/category_section.dart';
 import 'package:mit_ocw/features/course/domain/course.dart';
 import 'package:mit_ocw/features/course/presentation/home/home_header.dart';
@@ -85,24 +86,49 @@ class _HomeScreenCategoriesState extends State<HomeScreenCategories> {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: PagedListView<int, String>(
-        pagingController: _pagingController,
-        builderDelegate: PagedChildBuilderDelegate<String>(
-          itemBuilder: (context, item, index) {
-            CourseRepository courseRepository = context.read<CourseRepository>();
+      child:           // Builder(
+          //   builder: (context) {
+          //     WatchHistoryRepository watchHistoryRepository = context.read<WatchHistoryRepository>();
+          //
+          //     final watchHistoryCourses = watchHistoryRepository.getWatchHistory(lecture.coursenum, lecture.key);
+          //
+          //     return FutureBuilder(
+          //       future: watchHistoryRepository.getWatchHistory(),
+          //       builder: (context, snapshot) {
+          //         if (snapshot.hasError) {
+          //           return const SizedBox();
+          //         } else if (!snapshot.hasData) {
+          //           return const SizedBox();
+          //         } else {
+          //           final watchHistory = snapshot.data as List<String>;
+          //           return CategorySection<String>(
+          //             category: "Recently Watched",
+          //             categoryFetcher: StaticListPaginatedQuery<String>(items: watchHistory),
+          //             initialPageKey: 0
+          //           );
+          //         }
+          //       }
+          //     );
+          //   },
+          // ),
+          PagedListView<int, String>(
+            pagingController: _pagingController,
+            builderDelegate: PagedChildBuilderDelegate<String>(
+              itemBuilder: (context, item, index) {
+                CourseRepository courseRepository = context.read<CourseRepository>();
 
-            final departmentCoursesQuery = PaginatedQuery<int, FullCourseRun>(
-             fetchPage: (from, size) => courseRepository.getCoursesByDepartment(item, from, size)
-            );
+                final departmentCoursesQuery = PaginatedQuery<int, FullCourseRun>(
+                 fetchPage: (from, size) => courseRepository.getCoursesByDepartment(item, from, size)
+                );
 
-            return CategorySection<int>(
-             category: item,
-             categoryFetcher: departmentCoursesQuery,
-             initialPageKey: 0
-            );
-          }
-        ),
-      ),
+                return CategorySection<int>(
+                 category: item,
+                 categoryFetcher: departmentCoursesQuery,
+                 initialPageKey: 0
+                );
+              }
+            ),
+          ),
     );
   }
 }

@@ -48,16 +48,27 @@ RouteBase get $mainShellRoute => StatefulShellRouteData.$route(
                     ),
                     StatefulShellBranchData.$branch(
                       routes: [
-                        GoRouteData.$route(
-                          path: 'lectures',
-                          name: 'course-lectures',
-                          factory:
-                              $CourseLecturesScreenRouteExtension._fromState,
-                          routes: [
-                            GoRouteData.$route(
-                              path: ':lectureKey',
-                              factory:
-                                  $CourseLectureScreenRouteExtension._fromState,
+                        StatefulShellRouteData.$route(
+                          factory: $CourseLecturesScreenShellRouteExtension
+                              ._fromState,
+                          branches: [
+                            StatefulShellBranchData.$branch(
+                              routes: [
+                                GoRouteData.$route(
+                                  path: 'lectures',
+                                  name: 'course-lectures',
+                                  factory: $CourseLecturesScreenRouteExtension
+                                      ._fromState,
+                                  routes: [
+                                    GoRouteData.$route(
+                                      path: ':lectureKey',
+                                      factory:
+                                          $CourseLectureScreenRouteExtension
+                                              ._fromState,
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -188,6 +199,12 @@ extension $CourseHomeScreenRouteExtension on CourseHomeScreenRoute {
       context.pushReplacement(location);
 
   void replace(BuildContext context) => context.replace(location);
+}
+
+extension $CourseLecturesScreenShellRouteExtension
+    on CourseLecturesScreenShellRoute {
+  static CourseLecturesScreenShellRoute _fromState(GoRouterState state) =>
+      const CourseLecturesScreenShellRoute();
 }
 
 extension $CourseLecturesScreenRouteExtension on CourseLecturesScreenRoute {

@@ -1,10 +1,12 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
+import 'package:mit_ocw/features/persistence/course_preferences.dart';
 import 'package:mit_ocw/features/persistence/playlist.dart';
+import 'package:mit_ocw/features/persistence/watch_history.dart';
 
 part 'database.g.dart';
 
-@DriftDatabase(tables: [Playlist, PlaylistCourse])
+@DriftDatabase(tables: [Playlist, PlaylistCourse, CoursePreferences, LectureWatchHistory])
 class MitOcwDatabase extends _$MitOcwDatabase {
   // After generating code, this class needs to define a `schemaVersion` getter
   // and a constructor telling drift where the database should be stored.
