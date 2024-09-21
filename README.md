@@ -1,6 +1,6 @@
 # MIT OpenCourseWare
 
-A mobile companion for MIT OpenCourseWare
+A mobile companion for [MIT OpenCourseWare](https://ocw.mit.edu/).
 
 ## Getting Started
 
