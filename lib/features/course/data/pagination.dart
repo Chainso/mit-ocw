@@ -25,6 +25,10 @@ class PagedItem<CURSOR, ITEM> {
   final ITEM item;
 
   PagedItem({required this.cursor, required this.item});
+
+  PagedItem<CURSOR, NEW_ITEM> map<NEW_ITEM>(NEW_ITEM Function(ITEM) mapper) {
+    return PagedItem(cursor: cursor, item: mapper(item));
+  }
 }
 
 class PaginatedQuery<CURSOR, ITEM> {

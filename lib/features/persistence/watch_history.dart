@@ -9,6 +9,7 @@ class LectureWatchHistory extends Table {
 
   TextColumn get coursenum => text().references(CoursePreferences, #coursenum)();
   TextColumn get lectureKey => text()();
+  IntColumn get lectureNumber => integer()();
   IntColumn get position => integer()(); // Position in milliseconds
   IntColumn get lectureLength => integer()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();

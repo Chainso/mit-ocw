@@ -9,7 +9,7 @@ part 'course_preferences_repository.g.dart';
 class CoursePreferencesRepository extends DatabaseAccessor<MitOcwDatabase> with _$CoursePreferencesRepositoryMixin {
   CoursePreferencesRepository({required MitOcwDatabase database}) : super(database);
 
-  Future<CoursePreference> createCoursePreferences(
+  Future<CoursePreference> upsertCoursePreferences(
     String coursenum,
     bool? showInContinueWatching
   ) async {
@@ -50,6 +50,20 @@ class CoursePreferencesRepository extends DatabaseAccessor<MitOcwDatabase> with 
         coursePreferences,
         mode: InsertMode.insertOrAbort
       );
+    });
+  }
+
+  Future<CoursePreference> enableContinueWatching(
+    String coursenum
+  ) async {
+    return await db.transaction(() async {
+      var coursePreferences = await getCoursePreferences(coursenum);
+
+      if (coursePreferences != null && coursePreferences.showInContinueWatching) {
+        return coursePreferences;
+      }
+
+      return await upsertCoursePreferences(coursenum, true);
     });
   }
 

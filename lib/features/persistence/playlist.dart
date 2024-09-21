@@ -3,9 +3,6 @@ import 'package:drift/drift.dart';
 
 class Playlist extends Table {
   @override
-  Set<Column> get primaryKey => {id};
-
-  @override
   List<Set<Column>> get uniqueKeys => [
     {name}
   ];

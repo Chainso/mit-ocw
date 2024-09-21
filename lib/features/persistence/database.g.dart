@@ -768,6 +768,12 @@ class $LectureWatchHistoryTable extends LectureWatchHistory
   late final GeneratedColumn<String> lectureKey = GeneratedColumn<String>(
       'lecture_key', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _lectureNumberMeta =
+      const VerificationMeta('lectureNumber');
+  @override
+  late final GeneratedColumn<int> lectureNumber = GeneratedColumn<int>(
+      'lecture_number', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
   static const VerificationMeta _positionMeta =
       const VerificationMeta('position');
   @override
@@ -797,8 +803,15 @@ class $LectureWatchHistoryTable extends LectureWatchHistory
       requiredDuringInsert: false,
       defaultValue: currentDateAndTime);
   @override
-  List<GeneratedColumn> get $columns =>
-      [coursenum, lectureKey, position, lectureLength, createdAt, updatedAt];
+  List<GeneratedColumn> get $columns => [
+        coursenum,
+        lectureKey,
+        lectureNumber,
+        position,
+        lectureLength,
+        createdAt,
+        updatedAt
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -823,6 +836,14 @@ class $LectureWatchHistoryTable extends LectureWatchHistory
               data['lecture_key']!, _lectureKeyMeta));
     } else if (isInserting) {
       context.missing(_lectureKeyMeta);
+    }
+    if (data.containsKey('lecture_number')) {
+      context.handle(
+          _lectureNumberMeta,
+          lectureNumber.isAcceptableOrUnknown(
+              data['lecture_number']!, _lectureNumberMeta));
+    } else if (isInserting) {
+      context.missing(_lectureNumberMeta);
     }
     if (data.containsKey('position')) {
       context.handle(_positionMeta,
@@ -860,6 +881,8 @@ class $LectureWatchHistoryTable extends LectureWatchHistory
           .read(DriftSqlType.string, data['${effectivePrefix}coursenum'])!,
       lectureKey: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}lecture_key'])!,
+      lectureNumber: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}lecture_number'])!,
       position: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}position'])!,
       lectureLength: attachedDatabase.typeMapping
@@ -881,6 +904,7 @@ class LectureWatchHistoryData extends DataClass
     implements Insertable<LectureWatchHistoryData> {
   final String coursenum;
   final String lectureKey;
+  final int lectureNumber;
   final int position;
   final int lectureLength;
   final DateTime createdAt;
@@ -888,6 +912,7 @@ class LectureWatchHistoryData extends DataClass
   const LectureWatchHistoryData(
       {required this.coursenum,
       required this.lectureKey,
+      required this.lectureNumber,
       required this.position,
       required this.lectureLength,
       required this.createdAt,
@@ -897,6 +922,7 @@ class LectureWatchHistoryData extends DataClass
     final map = <String, Expression>{};
     map['coursenum'] = Variable<String>(coursenum);
     map['lecture_key'] = Variable<String>(lectureKey);
+    map['lecture_number'] = Variable<int>(lectureNumber);
     map['position'] = Variable<int>(position);
     map['lecture_length'] = Variable<int>(lectureLength);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -908,6 +934,7 @@ class LectureWatchHistoryData extends DataClass
     return LectureWatchHistoryCompanion(
       coursenum: Value(coursenum),
       lectureKey: Value(lectureKey),
+      lectureNumber: Value(lectureNumber),
       position: Value(position),
       lectureLength: Value(lectureLength),
       createdAt: Value(createdAt),
@@ -921,6 +948,7 @@ class LectureWatchHistoryData extends DataClass
     return LectureWatchHistoryData(
       coursenum: serializer.fromJson<String>(json['coursenum']),
       lectureKey: serializer.fromJson<String>(json['lectureKey']),
+      lectureNumber: serializer.fromJson<int>(json['lectureNumber']),
       position: serializer.fromJson<int>(json['position']),
       lectureLength: serializer.fromJson<int>(json['lectureLength']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -933,6 +961,7 @@ class LectureWatchHistoryData extends DataClass
     return <String, dynamic>{
       'coursenum': serializer.toJson<String>(coursenum),
       'lectureKey': serializer.toJson<String>(lectureKey),
+      'lectureNumber': serializer.toJson<int>(lectureNumber),
       'position': serializer.toJson<int>(position),
       'lectureLength': serializer.toJson<int>(lectureLength),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -943,6 +972,7 @@ class LectureWatchHistoryData extends DataClass
   LectureWatchHistoryData copyWith(
           {String? coursenum,
           String? lectureKey,
+          int? lectureNumber,
           int? position,
           int? lectureLength,
           DateTime? createdAt,
@@ -950,6 +980,7 @@ class LectureWatchHistoryData extends DataClass
       LectureWatchHistoryData(
         coursenum: coursenum ?? this.coursenum,
         lectureKey: lectureKey ?? this.lectureKey,
+        lectureNumber: lectureNumber ?? this.lectureNumber,
         position: position ?? this.position,
         lectureLength: lectureLength ?? this.lectureLength,
         createdAt: createdAt ?? this.createdAt,
@@ -960,6 +991,9 @@ class LectureWatchHistoryData extends DataClass
       coursenum: data.coursenum.present ? data.coursenum.value : this.coursenum,
       lectureKey:
           data.lectureKey.present ? data.lectureKey.value : this.lectureKey,
+      lectureNumber: data.lectureNumber.present
+          ? data.lectureNumber.value
+          : this.lectureNumber,
       position: data.position.present ? data.position.value : this.position,
       lectureLength: data.lectureLength.present
           ? data.lectureLength.value
@@ -974,6 +1008,7 @@ class LectureWatchHistoryData extends DataClass
     return (StringBuffer('LectureWatchHistoryData(')
           ..write('coursenum: $coursenum, ')
           ..write('lectureKey: $lectureKey, ')
+          ..write('lectureNumber: $lectureNumber, ')
           ..write('position: $position, ')
           ..write('lectureLength: $lectureLength, ')
           ..write('createdAt: $createdAt, ')
@@ -983,14 +1018,15 @@ class LectureWatchHistoryData extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(
-      coursenum, lectureKey, position, lectureLength, createdAt, updatedAt);
+  int get hashCode => Object.hash(coursenum, lectureKey, lectureNumber,
+      position, lectureLength, createdAt, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is LectureWatchHistoryData &&
           other.coursenum == this.coursenum &&
           other.lectureKey == this.lectureKey &&
+          other.lectureNumber == this.lectureNumber &&
           other.position == this.position &&
           other.lectureLength == this.lectureLength &&
           other.createdAt == this.createdAt &&
@@ -1001,6 +1037,7 @@ class LectureWatchHistoryCompanion
     extends UpdateCompanion<LectureWatchHistoryData> {
   final Value<String> coursenum;
   final Value<String> lectureKey;
+  final Value<int> lectureNumber;
   final Value<int> position;
   final Value<int> lectureLength;
   final Value<DateTime> createdAt;
@@ -1009,6 +1046,7 @@ class LectureWatchHistoryCompanion
   const LectureWatchHistoryCompanion({
     this.coursenum = const Value.absent(),
     this.lectureKey = const Value.absent(),
+    this.lectureNumber = const Value.absent(),
     this.position = const Value.absent(),
     this.lectureLength = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -1018,6 +1056,7 @@ class LectureWatchHistoryCompanion
   LectureWatchHistoryCompanion.insert({
     required String coursenum,
     required String lectureKey,
+    required int lectureNumber,
     required int position,
     required int lectureLength,
     this.createdAt = const Value.absent(),
@@ -1025,11 +1064,13 @@ class LectureWatchHistoryCompanion
     this.rowid = const Value.absent(),
   })  : coursenum = Value(coursenum),
         lectureKey = Value(lectureKey),
+        lectureNumber = Value(lectureNumber),
         position = Value(position),
         lectureLength = Value(lectureLength);
   static Insertable<LectureWatchHistoryData> custom({
     Expression<String>? coursenum,
     Expression<String>? lectureKey,
+    Expression<int>? lectureNumber,
     Expression<int>? position,
     Expression<int>? lectureLength,
     Expression<DateTime>? createdAt,
@@ -1039,6 +1080,7 @@ class LectureWatchHistoryCompanion
     return RawValuesInsertable({
       if (coursenum != null) 'coursenum': coursenum,
       if (lectureKey != null) 'lecture_key': lectureKey,
+      if (lectureNumber != null) 'lecture_number': lectureNumber,
       if (position != null) 'position': position,
       if (lectureLength != null) 'lecture_length': lectureLength,
       if (createdAt != null) 'created_at': createdAt,
@@ -1050,6 +1092,7 @@ class LectureWatchHistoryCompanion
   LectureWatchHistoryCompanion copyWith(
       {Value<String>? coursenum,
       Value<String>? lectureKey,
+      Value<int>? lectureNumber,
       Value<int>? position,
       Value<int>? lectureLength,
       Value<DateTime>? createdAt,
@@ -1058,6 +1101,7 @@ class LectureWatchHistoryCompanion
     return LectureWatchHistoryCompanion(
       coursenum: coursenum ?? this.coursenum,
       lectureKey: lectureKey ?? this.lectureKey,
+      lectureNumber: lectureNumber ?? this.lectureNumber,
       position: position ?? this.position,
       lectureLength: lectureLength ?? this.lectureLength,
       createdAt: createdAt ?? this.createdAt,
@@ -1074,6 +1118,9 @@ class LectureWatchHistoryCompanion
     }
     if (lectureKey.present) {
       map['lecture_key'] = Variable<String>(lectureKey.value);
+    }
+    if (lectureNumber.present) {
+      map['lecture_number'] = Variable<int>(lectureNumber.value);
     }
     if (position.present) {
       map['position'] = Variable<int>(position.value);
@@ -1098,6 +1145,7 @@ class LectureWatchHistoryCompanion
     return (StringBuffer('LectureWatchHistoryCompanion(')
           ..write('coursenum: $coursenum, ')
           ..write('lectureKey: $lectureKey, ')
+          ..write('lectureNumber: $lectureNumber, ')
           ..write('position: $position, ')
           ..write('lectureLength: $lectureLength, ')
           ..write('createdAt: $createdAt, ')
@@ -1684,6 +1732,7 @@ typedef $$LectureWatchHistoryTableCreateCompanionBuilder
     = LectureWatchHistoryCompanion Function({
   required String coursenum,
   required String lectureKey,
+  required int lectureNumber,
   required int position,
   required int lectureLength,
   Value<DateTime> createdAt,
@@ -1694,6 +1743,7 @@ typedef $$LectureWatchHistoryTableUpdateCompanionBuilder
     = LectureWatchHistoryCompanion Function({
   Value<String> coursenum,
   Value<String> lectureKey,
+  Value<int> lectureNumber,
   Value<int> position,
   Value<int> lectureLength,
   Value<DateTime> createdAt,
@@ -1727,6 +1777,11 @@ class $$LectureWatchHistoryTableFilterComposer
   $$LectureWatchHistoryTableFilterComposer(super.$state);
   ColumnFilters<String> get lectureKey => $state.composableBuilder(
       column: $state.table.lectureKey,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get lectureNumber => $state.composableBuilder(
+      column: $state.table.lectureNumber,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -1772,6 +1827,11 @@ class $$LectureWatchHistoryTableOrderingComposer
   $$LectureWatchHistoryTableOrderingComposer(super.$state);
   ColumnOrderings<String> get lectureKey => $state.composableBuilder(
       column: $state.table.lectureKey,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get lectureNumber => $state.composableBuilder(
+      column: $state.table.lectureNumber,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
@@ -1835,6 +1895,7 @@ class $$LectureWatchHistoryTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> coursenum = const Value.absent(),
             Value<String> lectureKey = const Value.absent(),
+            Value<int> lectureNumber = const Value.absent(),
             Value<int> position = const Value.absent(),
             Value<int> lectureLength = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
@@ -1844,6 +1905,7 @@ class $$LectureWatchHistoryTableTableManager extends RootTableManager<
               LectureWatchHistoryCompanion(
             coursenum: coursenum,
             lectureKey: lectureKey,
+            lectureNumber: lectureNumber,
             position: position,
             lectureLength: lectureLength,
             createdAt: createdAt,
@@ -1853,6 +1915,7 @@ class $$LectureWatchHistoryTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             required String coursenum,
             required String lectureKey,
+            required int lectureNumber,
             required int position,
             required int lectureLength,
             Value<DateTime> createdAt = const Value.absent(),
@@ -1862,6 +1925,7 @@ class $$LectureWatchHistoryTableTableManager extends RootTableManager<
               LectureWatchHistoryCompanion.insert(
             coursenum: coursenum,
             lectureKey: lectureKey,
+            lectureNumber: lectureNumber,
             position: position,
             lectureLength: lectureLength,
             createdAt: createdAt,

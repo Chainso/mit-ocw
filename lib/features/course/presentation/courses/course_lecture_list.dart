@@ -139,6 +139,7 @@ class CourseLecturesScreen extends StatelessWidget {
                 CourseLectureScreenRoute(
                   coursenum: coursenum,
                   lectureKey: lecture.key,
+                  lectureNumber: index + 1
                 ).go(context);
               },
               child: Container(

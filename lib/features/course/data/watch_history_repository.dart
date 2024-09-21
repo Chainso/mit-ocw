@@ -1,5 +1,4 @@
 import 'package:drift/drift.dart';
-import 'package:equatable/equatable.dart';
 import 'package:mit_ocw/features/course/data/course_preferences_repository.dart';
 import 'package:mit_ocw/features/persistence/database.dart';
 import 'package:mit_ocw/features/persistence/watch_history.dart';
@@ -7,7 +6,28 @@ import 'package:mit_ocw/features/persistence/watch_history.dart';
 part 'watch_history_repository.g.dart';
 
 
-@DriftAccessor(tables: [LectureWatchHistory])
+@DriftAccessor(
+  tables: [LectureWatchHistory],
+  queries: {
+    "getLatestWatched":
+        "SELECT * FROM "
+        "(SELECT *, RANK() OVER (PARTITION BY coursenum "
+            "ORDER BY CASE WHEN position / lecture_length < 0.98 THEN 1 ELSE 2 END, "
+            "lecture_number DESC "
+          ") as rank FROM lecture_watch_history) "
+        "WHERE rank = 1 "
+        "ORDER BY updated_at DESC",
+    "getLatestWatchedForCourses":
+        "SELECT * FROM "
+        "(SELECT *, RANK() OVER (PARTITION BY coursenum "
+            "ORDER BY CASE WHEN position / lecture_length < 0.98 THEN 1 ELSE 2 END, "
+            "lecture_number DESC "
+          ") as rank FROM lecture_watch_history "
+          "WHERE coursenum IN ?) "
+        "WHERE rank = 1 "
+        "ORDER BY updated_at DESC",
+  }
+)
 class WatchHistoryRepository extends DatabaseAccessor<MitOcwDatabase> with _$WatchHistoryRepositoryMixin {
   final CoursePreferencesRepository coursePreferencesRepository;
 
@@ -16,6 +36,7 @@ class WatchHistoryRepository extends DatabaseAccessor<MitOcwDatabase> with _$Wat
   Future<LectureWatchHistoryData> upsertWatchHistory(
     String coursenum,
     String lectureKey,
+    int lectureNumber,
     int position,
     int lectureLength
   ) async {
@@ -23,11 +44,12 @@ class WatchHistoryRepository extends DatabaseAccessor<MitOcwDatabase> with _$Wat
       final watchHistory = await getWatchHistory(coursenum, lectureKey);
 
       if (watchHistory == null) {
-        coursePreferencesRepository.createCoursePreferencesIfNotExists(coursenum);
+        coursePreferencesRepository.enableContinueWatching(coursenum);
 
         final newWatchHistory = LectureWatchHistoryCompanion.insert(
           coursenum: coursenum,
           lectureKey: lectureKey,
+          lectureNumber: lectureNumber,
           position: position,
           lectureLength: lectureLength
         );
@@ -37,6 +59,7 @@ class WatchHistoryRepository extends DatabaseAccessor<MitOcwDatabase> with _$Wat
         final newWatchHistory = LectureWatchHistoryCompanion.insert(
           coursenum: coursenum,
           lectureKey: lectureKey,
+          lectureNumber: lectureNumber,
           position: position,
           lectureLength: lectureLength,
           createdAt: Value(watchHistory.createdAt),
@@ -64,34 +87,45 @@ class WatchHistoryRepository extends DatabaseAccessor<MitOcwDatabase> with _$Wat
       .getSingleOrNull();
   }
 
-  // Future<Map<CourseLectureKey, LectureWatchHistoryData>> getLatestWatchedLectureByCourse() async {
+  Future<List<MapEntry<String, LectureWatchHistoryData>>> getLatestWatchedLectureByCourse() async {
   //   // Want to get the latest watched lecture for each course, want to get the entire lecture watch history point for it
-  //   return await db.transaction(() async {
-  //     final latestByLecture = await db.customSelect(
-  //       'SELECT * FROM (SELECT *, RANK() OVER (PARTITION BY coursenumlecture_watch_history WHERE (coursenum, updatedAt) IN (SELECT coursenum, MAX(updatedAt) FROM lecture_watch_history GROUP BY coursenum)'
-  //     ).get();
-  //     final lectureHistorySubquery = alias(db.lectureWatchHistory, 'lectureHistorySubquery');
-  //     final orderedCourseWatchesByGroup = await (select(lectureHistorySubquery)
-  //       ..groupBy([lectureHistorySubquery.coursenum])
-  //       ..orderBy([
-  //         OrderingTerm(expression: lectureHistorySubquery.updatedAt, mode: OrderingMode.desc)
-  //       ]))
-  //       .get();
-  //     final query = select(db.lectureWatchHistory)
-  //       ..groupBy([db.lectureWatchHistory.coursenum])
-  //       ..orderBy([
-  //         OrderingTerm(expression: db.lectureWatchHistory.updatedAt, mode: OrderingMode.desc)
-  //       ]);
-  //   });
-  // }
-}
+    return await db.transaction(() async {
+      final latestLectures = await getLatestWatched().get();
 
-class CourseLectureKey extends Equatable {
-  final String coursenum;
-  final String lectureKey;
+      return latestLectures.map((watchedLecture) {
+        final lectureWatchHistory = LectureWatchHistoryData(
+          coursenum: watchedLecture.coursenum,
+          lectureKey: watchedLecture.lectureKey,
+          lectureNumber: watchedLecture.lectureNumber,
+          position: watchedLecture.position,
+          lectureLength: watchedLecture.lectureLength,
+          createdAt: watchedLecture.createdAt,
+          updatedAt: watchedLecture.updatedAt
+        );
 
-  const CourseLectureKey({required this.coursenum, required this.lectureKey});
+        return MapEntry(watchedLecture.coursenum, lectureWatchHistory);
+      }).toList();
+    });
+  }
 
-  @override
-  List<Object> get props => [coursenum, lectureKey];
+  Future<Map<String, LectureWatchHistoryData>> getLatestWatchedLectureForCourses(List<String> coursenums) async {
+  //   // Want to get the latest watched lecture for each course, want to get the entire lecture watch history point for it
+    return await db.transaction(() async {
+      final latestLectures = await getLatestWatchedForCourses(coursenums).get();
+
+      return Map.fromEntries(latestLectures.map((watchedLecture) {
+        final lectureWatchHistory = LectureWatchHistoryData(
+          coursenum: watchedLecture.coursenum,
+          lectureKey: watchedLecture.lectureKey,
+          lectureNumber: watchedLecture.lectureNumber,
+          position: watchedLecture.position,
+          lectureLength: watchedLecture.lectureLength,
+          createdAt: watchedLecture.createdAt,
+          updatedAt: watchedLecture.updatedAt
+        );
+
+        return MapEntry(watchedLecture.coursenum, lectureWatchHistory);
+      }));
+    });
+  }
 }

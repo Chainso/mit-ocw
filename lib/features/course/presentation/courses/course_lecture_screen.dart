@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:logger/logger.dart';
 import 'package:mit_ocw/bloc/lecture_bloc/lecture_bloc.dart';
 import 'package:mit_ocw/features/course/data/watch_history_repository.dart';
@@ -15,8 +14,14 @@ import 'package:mit_ocw/config/ocw_config.dart';
 class CourseLectureScreen extends StatefulWidget {
   final String coursenum;
   final String lectureKey;
+  final int lectureNumber;
 
-  const CourseLectureScreen({super.key, required this.coursenum, required this.lectureKey});
+  const CourseLectureScreen({
+    super.key,
+    required this.coursenum,
+    required this.lectureKey,
+    required this.lectureNumber
+  });
 
   @override
   _CourseLectureScreenState createState() => _CourseLectureScreenState();
@@ -49,6 +54,7 @@ class _CourseLectureScreenState extends State<CourseLectureScreen> with WidgetsB
       context.read<WatchHistoryRepository>().upsertWatchHistory(
         widget.coursenum,
         widget.lectureKey,
+        widget.lectureNumber,
         _youtubePlayerController!.value.position.inMilliseconds,
         _youtubePlayerController!.value.metaData.duration.inMilliseconds
       );

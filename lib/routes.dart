@@ -62,7 +62,7 @@ final rootNavigatorKey = GlobalKey<NavigatorState>();
                               path: "lectures",
                               routes: [
                                 TypedGoRoute<CourseLectureScreenRoute>(
-                                  path: ":lectureKey",
+                                  path: ":lectureKey/:lectureNumber",
                                 ),
                               ]
                             )
@@ -361,17 +361,20 @@ class CourseLecturesScreenRoute extends GoRouteData {
 class CourseLectureScreenRoute extends GoRouteData {
   const CourseLectureScreenRoute({
     required this.coursenum,
-    required this.lectureKey
+    required this.lectureKey,
+    required this.lectureNumber
   });
 
   final String coursenum;
   final String lectureKey;
+  final int lectureNumber;
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
     return CourseLectureScreen(
       coursenum: coursenum,
-      lectureKey: lectureKey
+      lectureKey: lectureKey,
+      lectureNumber: lectureNumber,
     );
   }
 }

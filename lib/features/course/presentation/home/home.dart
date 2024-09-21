@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart' as collection;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
@@ -86,32 +87,57 @@ class _HomeScreenCategoriesState extends State<HomeScreenCategories> {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child:           // Builder(
-          //   builder: (context) {
-          //     WatchHistoryRepository watchHistoryRepository = context.read<WatchHistoryRepository>();
-          //
-          //     final watchHistoryCourses = watchHistoryRepository.getWatchHistory(lecture.coursenum, lecture.key);
-          //
-          //     return FutureBuilder(
-          //       future: watchHistoryRepository.getWatchHistory(),
-          //       builder: (context, snapshot) {
-          //         if (snapshot.hasError) {
-          //           return const SizedBox();
-          //         } else if (!snapshot.hasData) {
-          //           return const SizedBox();
-          //         } else {
-          //           final watchHistory = snapshot.data as List<String>;
-          //           return CategorySection<String>(
-          //             category: "Recently Watched",
-          //             categoryFetcher: StaticListPaginatedQuery<String>(items: watchHistory),
-          //             initialPageKey: 0
-          //           );
-          //         }
-          //       }
-          //     );
-          //   },
-          // ),
-          PagedListView<int, String>(
+      child: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: FutureBuilder(
+              future: context.read<WatchHistoryRepository>().getLatestWatchedLectureByCourse(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                } else if (snapshot.hasError) {
+                  return const SizedBox();
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const SizedBox();
+                } else {
+                  final watchHistory = snapshot.data!;
+                  final historyCoursenums = watchHistory.map((entry) => entry.key).toList();
+                  final courseOrdering = Map.fromEntries(historyCoursenums.mapIndexed((index, coursenum) => MapEntry(coursenum, index)));
+
+                  return FutureBuilder(
+                    future: context.read<CourseRepository>().getCoursesMap(historyCoursenums),
+                    builder: (context, coursesSnapshot) {
+                      if (coursesSnapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      } else if (coursesSnapshot.hasError) {
+                        return const SizedBox();
+                      } else if (!coursesSnapshot.hasData || coursesSnapshot.data!.isEmpty) {
+                        return const SizedBox();
+                      } else {
+                        final courses = coursesSnapshot.data!.values.toList();
+                        courses.sort((a, b) => courseOrdering[a.course.coursenum]!.compareTo(courseOrdering[b.course.coursenum]!));
+
+
+                        final courseFetcher = StaticListPaginatedQuery<FullCourseRun>(items: courses);
+
+                        return CategorySection<int>(
+                          category: "Continue Watching",
+                          categoryFetcher: courseFetcher,
+                          initialPageKey: 0,
+                          withHistory: true
+                        );
+                      }
+                    }
+                  );
+                }
+              }
+            ),
+          ),
+          PagedSliverList<int, String>(
             pagingController: _pagingController,
             builderDelegate: PagedChildBuilderDelegate<String>(
               itemBuilder: (context, item, index) {
@@ -124,11 +150,14 @@ class _HomeScreenCategoriesState extends State<HomeScreenCategories> {
                 return CategorySection<int>(
                  category: item,
                  categoryFetcher: departmentCoursesQuery,
-                 initialPageKey: 0
+                 initialPageKey: 0,
+                 withHistory: false
                 );
               }
             ),
           ),
+        ]
+      )
     );
   }
 }
