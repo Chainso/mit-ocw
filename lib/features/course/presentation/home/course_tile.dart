@@ -71,7 +71,13 @@ class CourseTile extends StatelessWidget {
 
         return InkWell(
           onTap: () {
-            CourseHomeScreenRoute(coursenum: courseRun.course.coursenum).go(context);
+            latestLectureWatchHistory != null
+                ? CourseLectureScreenRoute(
+                    coursenum: courseRun.course.coursenum,
+                    lectureKey: latestLectureWatchHistory.lectureKey,
+                    lectureNumber: latestLectureWatchHistory.lectureNumber,
+                  ).go(context)
+                : CourseHomeScreenRoute(coursenum: courseRun.course.coursenum).go(context);
           },
           onLongPress: onLongPress != null ? () => onLongPress!(context, courseRun) : null,
           child: Card(

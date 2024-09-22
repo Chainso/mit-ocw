@@ -187,10 +187,9 @@ class _CourseLectureScreenState extends State<CourseLectureScreen> with WidgetsB
                               ? YoutubePlayerBuilder(
                                 player: YoutubePlayer(
                                   controller: _youtubePlayerController!,
-                                  showVideoProgressIndicator: true,
                                   progressIndicatorColor: Colors.blueAccent,
                                   onEnded: (metaData) {
-                                    logger.i("Video ended");
+                                    logger.i("Video ${lecture.title} ended");
                                     updateWatchHistory();
                                   },
                                 ),
@@ -202,24 +201,6 @@ class _CourseLectureScreenState extends State<CourseLectureScreen> with WidgetsB
                                   ? Text(_errorMessage!, style: const TextStyle(color: Colors.white))
                                   : const CircularProgressIndicator(),
                         ),
-                        // const SizedBox(height: 12),
-                        // Padding(                        
-                        //   padding: const EdgeInsets.only(left: 16, right: 16),
-                        //   child: Text(
-                        //     lecture.title,
-                        //     style: Theme.of(context).textTheme.titleMedium,
-                        //   )
-                        // ),
-                        // const SizedBox(height: 24),
-                        // Padding(
-                        //   padding: const EdgeInsets.only(left: 16, right: 16),
-                        //   child: MarkdownBody(
-                        //     data: lecture.shortDescription ?? '',
-                        //     styleSheet: MarkdownStyleSheet(
-                        //       p: Theme.of(context).textTheme.bodyMedium,
-                        //     ),
-                        //   ),
-                        // )
                       ]
                     )
                   ),
