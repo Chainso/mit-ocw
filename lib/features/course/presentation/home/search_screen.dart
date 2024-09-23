@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:logger/logger.dart';
 import 'package:mit_ocw/features/course/data/course_repository.dart';
 import 'package:mit_ocw/features/course/domain/course.dart';
 import 'package:mit_ocw/features/course/presentation/home/focused_course_list.dart';
@@ -15,6 +16,7 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
+  final Logger logger = Logger();
   List<FullCourseRun> _searchResults = [];
   bool _isLoading = false;
   String? _currentQuery;
@@ -41,7 +43,7 @@ class _SearchScreenState extends State<SearchScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      print('Error searching courses: $e');
+      logger.e("Error searching courses: $e", error: e);
       setState(() {
         _isLoading = false;
       });

@@ -15,53 +15,36 @@ class CourseLecturesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CourseBloc, CourseState>(
-      builder: (context, courseState) {
-        if (courseState is! CourseLoadedState) {
-          return const Expanded(
-            child: Center(
-              child: Text("Unexpected error occurred, please try again later")
-            )
-          );
-        }
-
-        CourseLoadedState loadedCourse = courseState;
-
-        final courseRun = loadedCourse.course;
-
-        return BlocBuilder<LectureBloc, LectureListState>(
-          builder: (context, lectureListState) {
-            switch (lectureListState) {
-              case LectureListLoadingState _:
-                return const Expanded(
-                  child: Center(
-                    child: CircularProgressIndicator()
-                  )
-                );
-              case LectureListErrorState _:
-                return const Expanded(
-                  child: Center(
-                    child: Text(
-                      "Error loading lectures, please try again",
-                      style: TextStyle(color: Colors.white)
-                    )
-                  )
-                );
-              case LectureListLoadedState loadedLectures:
-                return Scaffold(
-                  backgroundColor: Colors.black,
-                  body: Column(
-                    children: [
-                      CourseHeader(courseTitle: courseRun.course.title),
-                      Expanded(
-                        child: _buildLectureList(context, loadedLectures.lectures),
-                      ),
-                    ],
+    return BlocBuilder<LectureBloc, LectureListState>(
+      builder: (context, lectureListState) {
+        switch (lectureListState) {
+          case LectureListLoadingState _:
+            return const Expanded(
+              child: Center(
+                child: CircularProgressIndicator()
+              )
+            );
+          case LectureListErrorState _:
+            return const Expanded(
+              child: Center(
+                child: Text(
+                  "Error loading lectures, please try again",
+                  style: TextStyle(color: Colors.white)
+                )
+              )
+            );
+          case LectureListLoadedState loadedLectures:
+            return Scaffold(
+              backgroundColor: Colors.black,
+              body: Column(
+                children: [
+                  Expanded(
+                    child: _buildLectureList(context, loadedLectures.lectures),
                   ),
-                );
-            }
-          },
-        );
+                ],
+              ),
+            );
+        }
       },
     );
   }

@@ -173,8 +173,6 @@ class CourseHomeScreenRedirectRoute extends GoRouteData {
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    print("Building CourseHomeScreenRedirectRoute for coursenum: $coursenum");
-    print("Fullpath ${state.fullPath} $location");
     if (state.uri.toString() == location) {
       SchedulerBinding.instance.addPostFrameCallback((_) {
         context.go(const HomeScreenRoute().location);
@@ -287,13 +285,6 @@ class CourseHomeScreenRoute extends GoRouteData {
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    print("Building CourseHomeScreenRoute for coursenum: $coursenum");
-    print("Navigator Stack: ${GoRouter.of(context).routerDelegate.currentConfiguration.uri}");
-
-    for (var i = 0; i < GoRouter.of(context).routerDelegate.currentConfiguration.matches.length; i++) {
-      final match = GoRouter.of(context).routerDelegate.currentConfiguration.matches[i];
-      print("Match $i: ${match.pageKey} ${match.matchedLocation}");
-    }
     return CourseDetailScreen(coursenum: coursenum);
   }
 }
@@ -352,7 +343,6 @@ class CourseLecturesScreenRoute extends GoRouteData {
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    print("Building CourseLecturesScreenRoute for coursenum: $coursenum");
     return CourseLecturesScreen(coursenum: coursenum);
   }
 }

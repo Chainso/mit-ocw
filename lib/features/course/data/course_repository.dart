@@ -45,16 +45,16 @@ class CourseRepository {
   Future<CourseAggregations> getAggregations() async {
     final response = await dio.post(
       _searchUrl,
-      data: searchRequest,
+      data: aggregationQuery,
     );
 
     if (response.statusCode == 200) {
-      print("Got aggregations response");
+      logger.i("Got aggregations response");
       print(response.data);
       final aggregationSearch = AggregationSearch<CourseAggregations>.fromJson(response.data, CourseAggregations.fromJsonModel);
       return aggregationSearch.aggregations;
     } else {
-      throw Exception("Failed to query aggregations");
+      throw Exception("Failed to query aggregations: ${response.statusMessage}");
     }
   }
 
@@ -74,12 +74,11 @@ class CourseRepository {
 
         return fullCourseRuns;
       } catch (e) {
-        print("Failed to parse courses");
-        print(e);
+        logger.e("Failed to parse courses", error: e);
         rethrow;
       }
     } else {
-      throw Exception("Failed to query courses");
+      throw Exception("Failed to query courses: ${response.statusMessage}");
     }
   }
 
@@ -118,7 +117,7 @@ class CourseRepository {
         )
       );
       
-      print("Got courses for department $department $startIndex $size ${courseSearch.hits.total} ${pagedItems.length}");
+      logger.i("Got courses for department $department $startIndex $size ${courseSearch.hits.total} ${pagedItems.length}");
 
       return PaginatedResults<int, FullCourseRun>(
         items: pagedItems,
@@ -407,37 +406,10 @@ class CourseRepository {
     query: courseFilter
   );
 
-  final Map<String, dynamic> searchRequest = {
+  late final Map<String, dynamic> aggregationQuery = {
     "from": 0,
     "size": 0,
-    "query": {
-      "bool": {
-        "must": [
-          {
-            "bool": {
-              "should": [
-                {
-                  "term": {
-                    "object_type.keyword": "course"
-                  }
-                }
-              ]
-            }
-          },
-          {
-            "bool": {
-              "should": [
-                {
-                  "term": {
-                    "offered_by": "OCW"
-                  }
-                }
-              ]
-            }
-          }
-        ]
-      }
-    },
+    "query": courseFilter,
     "aggs": {
       "audience": {
         "terms": {
