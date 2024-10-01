@@ -52,18 +52,15 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF121212),
-      body: Column(
-        children: [
-          HomeHeader(onSearch: _performSearch),
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _buildSearchResultsList(),
-          ),
-        ],
-      ),
+    return Column(
+      children: [
+        HomeHeader(onSearch: _performSearch),
+        Expanded(
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _buildSearchResultsList(),
+        ),
+      ],
     );
   }
 

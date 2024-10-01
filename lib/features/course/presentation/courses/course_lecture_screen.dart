@@ -175,37 +175,34 @@ class _CourseLectureScreenState extends State<CourseLectureScreen> with WidgetsB
               );
             }
 
-            return Scaffold(
-              backgroundColor: Colors.black,
-              body: Column(
-                children: [
-                  Expanded(
-                    child: ListView(
-                      children: [ 
-                        Center(
-                          child: _youtubePlayerController != null
-                              ? YoutubePlayerBuilder(
-                                player: YoutubePlayer(
-                                  controller: _youtubePlayerController!,
-                                  progressIndicatorColor: Colors.blueAccent,
-                                  onEnded: (metaData) {
-                                    logger.i("Video ${lecture.title} ended");
-                                    updateWatchHistory();
-                                  },
-                                ),
-                                builder: (context, player) {
-                                  return player;
-                                }
-                              )
-                              : _errorMessage != null
-                                  ? Text(_errorMessage!, style: const TextStyle(color: Colors.white))
-                                  : const CircularProgressIndicator(),
-                        ),
-                      ]
-                    )
-                  ),
-                ],
-              ),
+            return Column(
+              children: [
+                Expanded(
+                  child: ListView(
+                    children: [ 
+                      Center(
+                        child: _youtubePlayerController != null
+                            ? YoutubePlayerBuilder(
+                              player: YoutubePlayer(
+                                controller: _youtubePlayerController!,
+                                progressIndicatorColor: Colors.blueAccent,
+                                onEnded: (metaData) {
+                                  logger.i("Video ${lecture.title} ended");
+                                  updateWatchHistory();
+                                },
+                              ),
+                              builder: (context, player) {
+                                return player;
+                              }
+                            )
+                            : _errorMessage != null
+                                ? Text(_errorMessage!, style: const TextStyle(color: Colors.white))
+                                : const CircularProgressIndicator(),
+                      ),
+                    ]
+                  )
+                ),
+              ],
             );
         }
       },

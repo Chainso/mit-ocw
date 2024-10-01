@@ -15,37 +15,34 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF121212),
-      body: Column(
-        children: [
-          const HomeHeader(),
-          FutureBuilder(
-            future: _getAggregations(context),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return HomeScreenCategories(aggregationsQuery: StaticListPaginatedQuery<String>(items: []), error: snapshot.error);
-              } else if (!snapshot.hasData) {
-                return const Expanded(
-                  child: Center(
-                    child: CircularProgressIndicator()
-                  )
-                );
-              } else {
-                final departmentsAgg = snapshot.data!.departmentName.buckets;
-                final departmentNames = departmentsAgg.map((bucket) => bucket.key).toList();
-                departmentNames.sort();
+    return Column(
+      children: [
+        const HomeHeader(),
+        FutureBuilder(
+          future: _getAggregations(context),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return HomeScreenCategories(aggregationsQuery: StaticListPaginatedQuery<String>(items: []), error: snapshot.error);
+            } else if (!snapshot.hasData) {
+              return const Expanded(
+                child: Center(
+                  child: CircularProgressIndicator()
+                )
+              );
+            } else {
+              final departmentsAgg = snapshot.data!.departmentName.buckets;
+              final departmentNames = departmentsAgg.map((bucket) => bucket.key).toList();
+              departmentNames.sort();
 
-                final departmentQuery = StaticListPaginatedQuery<String>(
-                  items: departmentNames
-                );
+              final departmentQuery = StaticListPaginatedQuery<String>(
+                items: departmentNames
+              );
 
-                return HomeScreenCategories(aggregationsQuery: departmentQuery);
-              }
-            },
-          ),
-        ],
-      ),
+              return HomeScreenCategories(aggregationsQuery: departmentQuery);
+            }
+          },
+        ),
+      ],
     );
   }
 
