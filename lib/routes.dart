@@ -4,15 +4,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mit_ocw/bloc/course_bloc/course_bloc.dart';
 import 'package:mit_ocw/bloc/lecture_bloc/lecture_bloc.dart';
 import 'package:mit_ocw/features/course/data/course_repository.dart';
-import 'package:mit_ocw/features/course/presentation/courses/course_detail_screen.dart';
-import 'package:mit_ocw/features/course/presentation/courses/course_header.dart';
-import 'package:mit_ocw/features/course/presentation/courses/course_lecture_list.dart';
+import 'package:mit_ocw/features/course/presentation/courses/course_screen.dart';
 import 'package:mit_ocw/features/course/presentation/home/home.dart';
 import 'package:mit_ocw/features/course/presentation/home/search_screen.dart';
 import 'package:mit_ocw/features/course/presentation/library/my_library_screen.dart';
@@ -38,35 +35,19 @@ final rootNavigatorKey = GlobalKey<NavigatorState>();
           path: "/search",
         ),
         TypedGoRoute<CourseHomeScreenRedirectRoute>(
-          name: "course-home-redirect",
+          name: "course",
           path: "/courses/:coursenum",
           routes: [
             TypedStatefulShellRoute<CourseRootShellRoute>(
               branches: [
-                TypedStatefulShellBranch<CourseHomeBranch>(
+                TypedStatefulShellBranch<CourseBranch>(
                   routes: [
-                    TypedGoRoute<CourseHomeScreenRoute>(
-                      name: "course-home",
-                      path: "home",
-                    ),
-                  ]
-                ),
-                TypedStatefulShellBranch<CourseLecturesBranch>(
-                  routes: [
-                    TypedStatefulShellRoute<CourseLecturesScreenShellRoute>(
-                      branches: [
-                      TypedStatefulShellBranch<CourseLecturesScreenBranch>(
-                        routes: [
-                            TypedGoRoute<CourseLecturesScreenRoute>(
-                              name: "course-lectures",
-                              path: "lectures",
-                              routes: [
-                                TypedGoRoute<CourseLectureScreenRoute>(
-                                  path: ":lectureKey/:lectureNumber",
-                                ),
-                              ]
-                            )
-                          ]
+                    TypedGoRoute<CourseRoute>(
+                      name: "course-details",
+                      path: "details",
+                      routes: [
+                        TypedGoRoute<CourseLectureScreenRoute>(
+                          path: ":lectureKey/:lectureNumber",
                         )
                       ]
                     )
@@ -165,7 +146,7 @@ class CourseHomeScreenRedirectRoute extends GoRouteData {
   @override
   FutureOr<String?> redirect(BuildContext context, GoRouterState state) {
     if (state.uri.toString() == location) {
-      return CourseHomeScreenRoute(coursenum: coursenum).location;
+      return CourseRoute(coursenum: coursenum).location;
     }
     
     return null;
@@ -193,157 +174,62 @@ class CourseRootShellRoute extends StatefulShellRouteData {
 
   @override
   Widget builder(BuildContext context, GoRouterState state, StatefulNavigationShell navigationShell) {
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        systemOverlayStyle: const SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.light,
-          statusBarBrightness: Brightness.dark,
-        ),
-      ),
-      body: BlocProvider<CourseBloc>(
-        create: (context) => CourseBloc(
-          context.read<CourseRepository>(),
-        )..add(CourseLoadEvent(coursenum: state.pathParameters["coursenum"]!)),
-        child: BlocBuilder<CourseBloc, CourseState>(
-          builder: (context, courseState) {
-            switch (courseState) {
-              case CourseWaitingState _:
-              case CourseLoadingState _:
-                return const Expanded(
-                  child: Center(
-                    child: CircularProgressIndicator()
-                  )
-                );
-              case CourseLoadedState _:
-                return Stack(
-                  children: [
-                    CourseHeader(courseTitle: courseState.course.course.title),
-                    navigationShell,
-                  ]
-                );
-              case CourseNotFoundState notFound:
-                return Expanded(
-                  child: Center(
-                    child: Text("Course ${notFound.coursenum} not found")
-                  )
-                );
-              case CourseErrorState error:
-                return Expanded(
-                  child: Center(
-                    child: Text("Could not load course ${error.coursenum}: ${error.error.toString()}")
-                  )
-                );
-            }
-          }
-        )
-      ),
-      drawer: NavigationDrawer(
-        selectedIndex: navigationShell.currentIndex,
-        onDestinationSelected: (index) {
-          // Close drawer
-          Navigator.pop(context);
+    final coursenum = state.pathParameters["coursenum"]!;
 
-          // Navigate to the selected branch
-          navigationShell.goBranch(
-            index,
-            initialLocation: index == 0,
-          );
-        },
-        children: const [
-          Padding(
-            padding: EdgeInsets.fromLTRB(28, 16, 16, 10),
-          ),
-          NavigationDrawerDestination(
-            icon: Icon(Icons.home),
-            label: Text("Course Home"),
-          ),
-          NavigationDrawerDestination(
-            icon: Icon(Icons.video_library),
-            label: Text("Lectures"),
-          ),
-        ],
-      )
-    );
-  }
-}
-
-@immutable
-class CourseHomeBranch extends StatefulShellBranchData {
-  const CourseHomeBranch();
-}
-
-@immutable
-class CourseHomeScreenRoute extends GoRouteData {
-  final String coursenum;
-
-  const CourseHomeScreenRoute({required this.coursenum});
-
-  @override
-  Widget build(BuildContext context, GoRouterState state) {
-    return CourseDetailScreen(coursenum: coursenum);
-  }
-}
-
-@immutable
-class CourseLecturesBranch extends StatefulShellBranchData {
-  const CourseLecturesBranch();
-}
-
-class CourseLecturesScreenShellRoute extends StatefulShellRouteData {
-  const CourseLecturesScreenShellRoute();
-
-  @override
-  Widget builder(BuildContext context, GoRouterState state, StatefulNavigationShell navigationShell) {
-    return BlocProvider(
-      create: (context) => LectureBloc(
+    return BlocProvider<CourseBloc>(
+      create: (context) => CourseBloc(
         context.read<CourseRepository>(),
-      )..add(LectureListLoadEvent(coursenum: state.pathParameters["coursenum"]!)),
-      child: BlocBuilder<LectureBloc, LectureListState>(
-        builder: (context, lectureListState) {
-          switch (lectureListState) {
-            case LectureListLoadingState _:
+      )..add(CourseLoadEvent(coursenum: coursenum)),
+      child: BlocBuilder<CourseBloc, CourseState>(
+        builder: (context, courseState) {
+          switch (courseState) {
+            case CourseWaitingState _:
+            case CourseLoadingState _:
               return const Expanded(
                 child: Center(
                   child: CircularProgressIndicator()
                 )
               );
-            case LectureListErrorState _:
-              return const Expanded(
+            case CourseLoadedState _:
+              return BlocProvider(
+                create: (context) => LectureBloc(
+                  context.read<CourseRepository>(),
+                )..add(LectureListLoadEvent(coursenum: coursenum)),
+                child: navigationShell,
+              );
+            case CourseNotFoundState notFound:
+              return Expanded(
                 child: Center(
-                  child: Text(
-                    "Error loading lectures, please try again",
-                    style: TextStyle(color: Colors.white)
-                  )
+                  child: Text("Course ${notFound.coursenum} could not be found")
                 )
               );
-            case LectureListLoadedState _:
-              return navigationShell;
+            case CourseErrorState error:
+              return Expanded(
+                child: Center(
+                  child: Text("Could not load course ${error.coursenum}, please try again")
+                )
+              );
           }
-        },
+        }
       )
     );
   }
 }
 
 @immutable
-class CourseLecturesScreenBranch extends StatefulShellBranchData {
-  const CourseLecturesScreenBranch();
+class CourseBranch extends StatefulShellBranchData {
+  const CourseBranch();
 }
 
 @immutable
-class CourseLecturesScreenRoute extends GoRouteData {
-  const CourseLecturesScreenRoute({required this.coursenum});
-
+class CourseRoute extends GoRouteData {
   final String coursenum;
+
+  const CourseRoute({required this.coursenum});
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return CourseLecturesScreen(coursenum: coursenum);
+    return CourseScreen(coursenum: coursenum);
   }
 }
 

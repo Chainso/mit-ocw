@@ -51,7 +51,6 @@ dependencies:
   elastic_client: ^0.3.13
   flutter_inappwebview: ^6.0.0
   flutter_svg: ^2.0.10+1
-  scrollable_positioned_list: ^0.3.8
   html: ^0.15.4
   shared_preferences: ^2.3.2
   logger: ^2.4.0
@@ -60,6 +59,7 @@ dependencies:
   drift_flutter: ^0.2.0
   collection: ^1.18.0
   youtube_player_flutter: ^9.0.4
+  sliver_tools: ^0.2.12
 
 dev_dependencies:
   flutter_test:

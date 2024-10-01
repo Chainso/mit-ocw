@@ -10,8 +10,8 @@ class CourseHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(48, 14, 16, 2),
+        Container(
+          alignment: Alignment.center,
           child: Text(
             courseTitle,
             style: const TextStyle(

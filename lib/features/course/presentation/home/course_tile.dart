@@ -77,7 +77,7 @@ class CourseTile extends StatelessWidget {
                     lectureKey: latestLectureWatchHistory.lectureKey,
                     lectureNumber: latestLectureWatchHistory.lectureNumber,
                   ).go(context)
-                : CourseHomeScreenRoute(coursenum: courseRun.course.coursenum).go(context);
+                : CourseRoute(coursenum: courseRun.course.coursenum).go(context);
           },
           onLongPress: onLongPress != null ? () => onLongPress!(context, courseRun) : null,
           child: Card(

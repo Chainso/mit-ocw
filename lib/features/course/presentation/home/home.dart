@@ -23,8 +23,6 @@ class HomeScreen extends StatelessWidget {
           FutureBuilder(
             future: _getAggregations(context),
             builder: (context, snapshot) {
-              print("Future builder");
-              print(snapshot);
               if (snapshot.hasError) {
                 return HomeScreenCategories(aggregationsQuery: StaticListPaginatedQuery<String>(items: []), error: snapshot.error);
               } else if (!snapshot.hasData) {

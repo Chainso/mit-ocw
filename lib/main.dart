@@ -59,6 +59,9 @@ class MyApp extends StatelessWidget {
           theme: ThemeData.dark().copyWith(
             primaryColor: Colors.red,
             scaffoldBackgroundColor: Colors.black,
+            snackBarTheme: const SnackBarThemeData(
+              behavior: SnackBarBehavior.floating,
+            ),
             appBarTheme: const AppBarTheme(
               backgroundColor: Colors.black,
               elevation: 0,

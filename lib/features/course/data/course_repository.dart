@@ -219,9 +219,6 @@ class CourseRepository {
       
       // Sort the lectures using the custom comparison function
       lectures.sort(compareLectures);
-      
-      print("Sorted Lectures");
-      print(lectures);
       return lectures;
     } else {
       throw Exception('Failed to load course $coursenum');
