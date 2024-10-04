@@ -1,39 +1,73 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mit_ocw/bloc/course_bloc/course_bloc.dart';
+import 'package:mit_ocw/bloc/lecture_bloc/lecture_bloc.dart';
 import 'package:mit_ocw/features/course/data/watch_history_repository.dart';
-import 'package:mit_ocw/features/course/domain/course.dart';
 import 'package:mit_ocw/features/course/domain/lecture.dart';
 import 'package:mit_ocw/features/persistence/database.dart';
-import 'package:mit_ocw/routes.dart';
 
 class CourseLectureList extends StatelessWidget {
-  final FullCourseRun courseRun;
-  final List<Lecture> lectures;
+  final Function(Lecture, int)? onLectureSelected;
 
   const CourseLectureList({
     super.key,
-    required this.courseRun,
-    required this.lectures,
+    this.onLectureSelected
   });
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: context.read<WatchHistoryRepository>().getWatchHistoryForCourse(courseRun.course.coursenum),
-      builder: (context, snapshot) {
-        return _buildLectures(context, snapshot);
+    return BlocBuilder<CourseBloc, CourseState>(
+      builder: (context, courseState) {
+        if (courseState is! CourseLoadedState) {
+          return const Expanded(
+            child: Center(
+              child: Text("Unexpected error occurred, please try again later")
+            )
+          );
+        }
+
+        final courseRun = courseState.course;
+
+        return BlocBuilder<LectureBloc, LectureListState>(
+          builder: (context, lectureListState) {
+            switch (lectureListState) {
+              case LectureListLoadingState _:
+                return const Expanded(
+                  child: Center(
+                    child: CircularProgressIndicator()
+                  )
+                );
+              case LectureListErrorState _:
+                return const Expanded(
+                  child: Center(
+                    child: Text(
+                      "Error loading lectures, please try again",
+                    )
+                  )
+                );
+              case LectureListLoadedState _:
+                return FutureBuilder(
+                  future: context.read<WatchHistoryRepository>().getWatchHistoryForCourse(courseRun.course.coursenum),
+                  builder: (context, snapshot) {
+                    return _buildLectures(context, snapshot, lectureListState.lectures);
+                  }
+                );
+            }
+          }
+        );
       }
     );
   }
 
   SliverList _buildLectures(
     BuildContext context,
-    AsyncSnapshot<Map<String, LectureWatchHistoryData>> snapshot
+    AsyncSnapshot<Map<String, LectureWatchHistoryData>> snapshot,
+    List<Lecture> lectures
   ) {
     return SliverList(
       delegate: SliverChildBuilderDelegate(
         (context, index) {
-          return _buildLecture(context, snapshot, index);
+          return _buildLecture(context, snapshot, lectures[index], index);
         },
         childCount: lectures.length,
       ),
@@ -44,10 +78,9 @@ class CourseLectureList extends StatelessWidget {
   Widget _buildLecture(
     BuildContext context,
     AsyncSnapshot<Map<String, LectureWatchHistoryData>> snapshot,
+    Lecture lecture,
     int index
   ) {
-    final lecture = lectures[index];
-
     Widget lectureImage = ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: Image.network(
@@ -109,11 +142,9 @@ class CourseLectureList extends StatelessWidget {
 
     return InkWell(
       onTap: () {
-        CourseLectureScreenRoute(
-          coursenum: courseRun.course.coursenum,
-          lectureKey: lecture.key,
-          lectureNumber: index + 1
-        ).go(context);
+        if (onLectureSelected != null) {
+          onLectureSelected!(lecture, index);
+        }
       },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),

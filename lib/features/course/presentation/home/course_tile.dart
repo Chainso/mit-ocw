@@ -74,7 +74,6 @@ class CourseTile extends StatelessWidget {
             latestLectureWatchHistory != null
                 ? CourseLectureScreenRoute(
                     coursenum: courseRun.course.coursenum,
-                    lectureKey: latestLectureWatchHistory.lectureKey,
                     lectureNumber: latestLectureWatchHistory.lectureNumber,
                   ).go(context)
                 : CourseRoute(coursenum: courseRun.course.coursenum).go(context);

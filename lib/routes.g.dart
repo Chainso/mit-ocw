@@ -45,7 +45,7 @@ RouteBase get $mainShellRoute => StatefulShellRouteData.$route(
                           factory: $CourseRouteExtension._fromState,
                           routes: [
                             GoRouteData.$route(
-                              path: ':lectureKey/:lectureNumber',
+                              path: 'lectures',
                               factory:
                                   $CourseLectureScreenRouteExtension._fromState,
                             ),
@@ -183,12 +183,14 @@ extension $CourseLectureScreenRouteExtension on CourseLectureScreenRoute {
   static CourseLectureScreenRoute _fromState(GoRouterState state) =>
       CourseLectureScreenRoute(
         coursenum: state.pathParameters['coursenum']!,
-        lectureKey: state.pathParameters['lectureKey']!,
-        lectureNumber: int.parse(state.pathParameters['lectureNumber']!),
+        lectureNumber: int.parse(state.uri.queryParameters['lecture-number']!),
       );
 
   String get location => GoRouteData.$location(
-        '/courses/${Uri.encodeComponent(coursenum)}/details/${Uri.encodeComponent(lectureKey)}/${Uri.encodeComponent(lectureNumber.toString())}',
+        '/courses/${Uri.encodeComponent(coursenum)}/details/lectures',
+        queryParams: {
+          'lecture-number': lectureNumber.toString(),
+        },
       );
 
   void go(BuildContext context) => context.go(location);

@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mit_ocw/bloc/course_bloc/course_bloc.dart';
 import 'package:mit_ocw/bloc/lecture_bloc/lecture_bloc.dart';
+import 'package:mit_ocw/bloc/screen_ui_bloc/screen_ui_bloc.dart';
 import 'package:mit_ocw/features/course/data/course_repository.dart';
 import 'package:mit_ocw/features/course/presentation/courses/course_screen.dart';
 import 'package:mit_ocw/features/course/presentation/home/home.dart';
@@ -47,7 +48,7 @@ final rootNavigatorKey = GlobalKey<NavigatorState>();
                       path: "details",
                       routes: [
                         TypedGoRoute<CourseLectureScreenRoute>(
-                          path: ":lectureKey/:lectureNumber",
+                          path: "lectures",
                         )
                       ]
                     )
@@ -76,21 +77,25 @@ class MainShellRoute extends StatefulShellRouteData {
   
   @override
   Widget builder(BuildContext context, GoRouterState state, StatefulNavigationShell navigationShell) {
-    return Scaffold(
-      body: navigationShell,
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: navigationShell.currentIndex,
-        onTap: (index) => {
-          navigationShell.goBranch(
-            index,
-            initialLocation: index == 0,
-          ),
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.video_library), label: "My Library"),
-        ],
-      ),
+    return BlocBuilder<ScreenUiBloc, ScreenUiState>(
+      builder: (context, screenUiState) {
+        return Scaffold(
+          body: navigationShell,
+          bottomNavigationBar: screenUiState.fullscreen ? null : BottomNavigationBar(
+            currentIndex: navigationShell.currentIndex,
+            onTap: (index) => {
+              navigationShell.goBranch(
+                index,
+                initialLocation: index == 0,
+              ),
+            },
+            items: const [
+              BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+              BottomNavigationBarItem(icon: Icon(Icons.video_library), label: "My Library"),
+            ],
+          )
+        );
+      }
     );
   }
 }
@@ -235,22 +240,41 @@ class CourseRoute extends GoRouteData {
 
 @immutable
 class CourseLectureScreenRoute extends GoRouteData {
+  final String coursenum;
+  final int lectureNumber;
+
   const CourseLectureScreenRoute({
     required this.coursenum,
-    required this.lectureKey,
     required this.lectureNumber
   });
 
-  final String coursenum;
-  final String lectureKey;
-  final int lectureNumber;
-
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return CourseLectureScreen(
-      coursenum: coursenum,
-      lectureKey: lectureKey,
-      lectureNumber: lectureNumber,
+    return BlocBuilder<LectureBloc, LectureListState>(
+      builder: (context, lectureListState) {
+        switch (lectureListState) {
+          case LectureListLoadingState _:
+            return const Expanded(
+              child: Center(
+                child: CircularProgressIndicator()
+              )
+            );
+          case LectureListErrorState _:
+            return const Expanded(
+              child: Center(
+                child: Text(
+                  "Error loading lectures, please try again",
+                )
+              )
+            );
+          case LectureListLoadedState _:
+            return CourseLectureScreen(
+              coursenum: coursenum,
+              lectures: lectureListState.lectures,
+              lectureNumber: lectureNumber,
+            );
+        }
+      }
     );
   }
 }

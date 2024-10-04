@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logger/logger.dart';
-import 'package:mit_ocw/bloc/lecture_bloc/lecture_bloc.dart';
 import 'package:mit_ocw/features/course/data/watch_history_repository.dart';
+import 'package:mit_ocw/features/course/domain/lecture.dart';
+import 'package:mit_ocw/features/course/presentation/courses/course_lecture_list.dart';
+import 'package:mit_ocw/features/course/presentation/courses/video_player.dart';
+import 'package:mit_ocw/routes.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:dio/dio.dart';
 import 'package:html/parser.dart' as parser;
@@ -13,13 +15,13 @@ import 'package:mit_ocw/config/ocw_config.dart';
 
 class CourseLectureScreen extends StatefulWidget {
   final String coursenum;
-  final String lectureKey;
+  final List<Lecture> lectures;
   final int lectureNumber;
 
   const CourseLectureScreen({
     super.key,
     required this.coursenum,
-    required this.lectureKey,
+    required this.lectures,
     required this.lectureNumber
   });
 
@@ -27,59 +29,56 @@ class CourseLectureScreen extends StatefulWidget {
   _CourseLectureScreenState createState() => _CourseLectureScreenState();
 }
 
-class _CourseLectureScreenState extends State<CourseLectureScreen> with WidgetsBindingObserver {
+class _CourseLectureScreenState extends State<CourseLectureScreen> {
   final Logger logger = Logger();
-
-  YoutubePlayerController? _youtubePlayerController;
   final Dio _dio = Dio();
+
+  String? _videoKey;
+  Duration? _startPos;
   String? _errorMessage;
+
+  String _getLectureKey() {
+    final lecture = widget.lectures[widget.lectureNumber - 1];
+    return lecture.key;
+  }
 
   @override
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addObserver(this);
-    _initializeVideo();
+    _setVideoKey();
+  }
 
-    Timer.periodic(
-      const Duration(seconds: 10),
-      (timer) => updateWatchHistory()
+  @override
+  void didUpdateWidget(covariant CourseLectureScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.lectureNumber != oldWidget.lectureNumber) {
+      _setVideoKey();
+    }
+  }
+
+  void updateWatchHistory(Duration position, Duration videoLength) {
+    context.read<WatchHistoryRepository>().upsertWatchHistory(
+      widget.coursenum,
+      _getLectureKey(),
+      widget.lectureNumber,
+      position.inMilliseconds,
+      videoLength.inMilliseconds
     );
   }
 
-  void updateWatchHistory() {
-    if (_youtubePlayerController != null
-      && _youtubePlayerController!.value.position.inMilliseconds > 0) {
-      logger.i("Updating position to ${_youtubePlayerController!.value.position} out of ${_youtubePlayerController!.value.metaData.duration}");
-      context.read<WatchHistoryRepository>().upsertWatchHistory(
-        widget.coursenum,
-        widget.lectureKey,
-        widget.lectureNumber,
-        _youtubePlayerController!.value.position.inMilliseconds,
-        _youtubePlayerController!.value.metaData.duration.inMilliseconds
-      );
-    }
-  }
+  Future<void> _setVideoKey() async {
+    if (widget.lectureNumber < 1 || widget.lectureNumber > widget.lectures.length) {
+      setState(() {
+        _errorMessage = 'Lecture ${widget.lectureNumber} could not be found, please try again';
+      });
 
-  @override
-  void dispose() {
-    if (_youtubePlayerController != null) {
-      logger.i("Disposing video at position: ${_youtubePlayerController!.value.position} out of ${_youtubePlayerController!.value.metaData.duration}");
-      _youtubePlayerController?.dispose();
+      return;
     }
 
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    logger.i("AppLifecycleState changed: $state");
-    updateWatchHistory();
-  }
-
-  Future<void> _initializeVideo() async {
-    final lectureWebpageUrl = '$ocwUrl/${widget.lectureKey}';
+    logger.i("Setting video key for lecture $widget.lectureNumber");
+    final lectureWebpageUrl = '$ocwUrl/${_getLectureKey()}';
     
     try {
       final response = await _dio.get(lectureWebpageUrl);
@@ -96,28 +95,26 @@ class _CourseLectureScreenState extends State<CourseLectureScreen> with WidgetsB
               final videoId = YoutubePlayer.convertUrlToId(youtubeLink);
               if (videoId != null) {
                 if (mounted) {
-                  final watchHistory = await context.read<WatchHistoryRepository>().getWatchHistory(widget.coursenum, widget.lectureKey);
-
-                  Duration startPos = const Duration(milliseconds: 0);
+                  final watchHistory = await context.read<WatchHistoryRepository>().getWatchHistory(widget.coursenum, _getLectureKey());
 
                   if (watchHistory != null) {
                     final watchPercent = watchHistory.position / watchHistory.lectureLength;
 
                     // If watched more than 98%, start from beginning
                     if (watchPercent < 0.98) {
-                      startPos = Duration(milliseconds: watchHistory.position);
+                      setState(() {
+                        _startPos = Duration(milliseconds: watchHistory.position);
+                      });
+                    } else {
+                      setState(() {
+                        _startPos = null;
+                      });
                     }
                   }
 
                   setState(() {
-                    _youtubePlayerController = YoutubePlayerController(
-                      initialVideoId: videoId,
-                      flags: YoutubePlayerFlags(
-                        autoPlay: false,
-                        mute: false,
-                        startAt: startPos.inSeconds,
-                      ),
-                    );
+                    _errorMessage = null;
+                    _videoKey = videoId;
                   });
                 }
 
@@ -143,69 +140,71 @@ class _CourseLectureScreenState extends State<CourseLectureScreen> with WidgetsB
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<LectureBloc, LectureListState>(
-      builder: (context, lectureListState) {
-        switch (lectureListState) {
-          case LectureListLoadingState _:
-            return const Expanded(
-              child: Center(
-                child: CircularProgressIndicator()
-              )
-            );
-          case LectureListErrorState _:
-            return const Expanded(
-              child: Center(
-                child: Text(
-                  "Error loading lecture, please try again",
-                  style: TextStyle(color: Colors.white)
-                )
-              )
-            );
-          case LectureListLoadedState loadedLectures:
-            final lecture = loadedLectures.lectures.firstWhereOrNull((element) => element.key == widget.lectureKey);
-            
-            if (lecture == null) {
-              return const Expanded(
-                child: Center(
-                  child: Text(
-                    "Error loading lecture, please try again",
-                    style: TextStyle(color: Colors.white)
-                  )
-                )
-              );
-            }
-
-            return Column(
-              children: [
-                Expanded(
-                  child: ListView(
-                    children: [ 
-                      Center(
-                        child: _youtubePlayerController != null
-                            ? YoutubePlayerBuilder(
-                              player: YoutubePlayer(
-                                controller: _youtubePlayerController!,
-                                progressIndicatorColor: Colors.blueAccent,
-                                onEnded: (metaData) {
-                                  logger.i("Video ${lecture.title} ended");
-                                  updateWatchHistory();
-                                },
-                              ),
-                              builder: (context, player) {
-                                return player;
-                              }
-                            )
-                            : _errorMessage != null
-                                ? Text(_errorMessage!, style: const TextStyle(color: Colors.white))
-                                : const CircularProgressIndicator(),
-                      ),
-                    ]
-                  )
-                ),
-              ],
-            );
+    return OrientationBuilder(
+      builder: (context, orientation) {
+        if (orientation == Orientation.landscape) {
+          logger.i("Building landscape");
+          return _buildLandscape();
+        } else {
+          logger.i("Building portrait");
+          return _buildPortrait();
         }
       },
+    );
+  }
+
+  Widget _buildLandscape() {
+    return _buildVideoPlayer(
+      fullscreen: true,
+      builder: (context, player) {
+        return player;
+      }
+    );
+  }
+
+  Widget _buildPortrait() {
+    return _buildVideoPlayer(
+      fullscreen: false,
+      builder: (context, player) {
+        return CustomScrollView(
+          slivers: [
+            PinnedHeaderSliver(
+              child: player,
+            ),
+            CourseLectureList(
+              onLectureSelected: (lecture, index) {
+                logger.i("Selected lecture ${index + 1}");
+
+                CourseLectureScreenRoute(
+                  coursenum: lecture.coursenum,
+                  lectureNumber: index + 1
+                ).go(context);
+              },
+            )
+          ],
+        );
+      }
+    );
+  }
+
+  Widget _buildVideoPlayer({
+    required bool fullscreen,
+    required Widget Function(BuildContext, Widget) builder
+  }) {
+    if (_videoKey == null) {
+      return Center(
+        child: _errorMessage != null
+            ? Text(_errorMessage!, style: const TextStyle(color: Colors.white))
+            : const CircularProgressIndicator(),
+      );
+    }
+
+    return VideoPlayer(
+      videoKey: _videoKey!,
+      startPos: _startPos,
+      onPositionChanged: updateWatchHistory,
+      fullscreen: fullscreen,
+      builder: builder
     );
   }
 }

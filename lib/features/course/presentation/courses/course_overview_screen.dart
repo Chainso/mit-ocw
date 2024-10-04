@@ -40,10 +40,9 @@ class CourseOverviewScreen extends StatelessWidget {
                       return ElevatedButton.icon(
                         onPressed: () {
                           CourseLectureScreenRoute(
-                                  coursenum: courseRun.course.coursenum,
-                                  lectureKey: lectures.first.key,
-                                  lectureNumber: 1)
-                              .go(context);
+                            coursenum: courseRun.course.coursenum,
+                            lectureNumber: 1
+                          ).go(context);
                         },
                         icon: const Icon(Icons.play_arrow, color: Colors.black),
                         label: const Text('Watch Lectures',
@@ -59,7 +58,6 @@ class CourseOverviewScreen extends StatelessWidget {
                         onPressed: () {
                           CourseLectureScreenRoute(
                             coursenum: courseRun.course.coursenum,
-                            lectureKey: latestWatchedFromSnapshot.lectureKey,
                             lectureNumber: latestWatchedFromSnapshot.lectureNumber
                           ).go(context);
                         },

@@ -6,6 +6,7 @@ import 'package:mit_ocw/config/ocw_config.dart';
 import 'package:mit_ocw/features/course/presentation/courses/course_header.dart';
 import 'package:mit_ocw/features/course/presentation/courses/course_lecture_list.dart';
 import 'package:mit_ocw/features/course/presentation/courses/course_overview_screen.dart';
+import 'package:mit_ocw/routes.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
 class CourseScreen extends StatelessWidget {
@@ -164,8 +165,12 @@ class CourseScreen extends StatelessWidget {
                             key: "lectures",
                             slivers: [
                               CourseLectureList(
-                                courseRun: courseRun,
-                                lectures: lectureListState.lectures,
+                                onLectureSelected: (lecture, index) {
+                                  CourseLectureScreenRoute(
+                                    coursenum: lecture.coursenum,
+                                    lectureNumber: index + 1
+                                  ).go(context);
+                                },
                               )
                             ]
                           )
