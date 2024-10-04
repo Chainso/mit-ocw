@@ -69,7 +69,13 @@ class _CourseLectureScreenState extends State<CourseLectureScreen> {
   }
 
   Future<void> _setVideoKey() async {
-    if (widget.lectureNumber < 1 || widget.lectureNumber > widget.lectures.length) {
+    if (widget.lectures.isEmpty) {
+      setState(() {
+        _errorMessage = 'No lectures found for this course';
+      });
+
+      return;
+    } else if (widget.lectureNumber < 1 || widget.lectureNumber > widget.lectures.length) {
       setState(() {
         _errorMessage = 'Lecture ${widget.lectureNumber} could not be found, please try again';
       });

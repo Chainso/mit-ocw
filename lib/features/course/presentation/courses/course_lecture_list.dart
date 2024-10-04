@@ -32,20 +32,34 @@ class CourseLectureList extends StatelessWidget {
           builder: (context, lectureListState) {
             switch (lectureListState) {
               case LectureListLoadingState _:
-                return const Expanded(
-                  child: Center(
-                    child: CircularProgressIndicator()
+                return const SliverToBoxAdapter(
+                  child: Expanded(
+                    child: Center(
+                      child: CircularProgressIndicator()
+                    )
                   )
                 );
               case LectureListErrorState _:
-                return const Expanded(
-                  child: Center(
-                    child: Text(
-                      "Error loading lectures, please try again",
+                return const SliverToBoxAdapter(
+                  child: Expanded(
+                    child: Center(
+                      child: Text(
+                        "Error loading lectures, please try again",
+                      )
                     )
                   )
                 );
               case LectureListLoadedState _:
+                if (lectureListState.lectures.isEmpty) {
+                  return const SliverToBoxAdapter(
+                    child: Expanded(
+                      child: Center(
+                        child: Text("No lectures found for this course")
+                      )
+                    )
+                  );
+                }
+
                 return FutureBuilder(
                   future: context.read<WatchHistoryRepository>().getWatchHistoryForCourse(courseRun.course.coursenum),
                   builder: (context, snapshot) {
